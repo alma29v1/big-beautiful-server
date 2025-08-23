@@ -44,7 +44,7 @@
                            <key>NSExceptionRequiresForwardSecrecy</key>
                            <false/>
                        </dict>
-                       <key>big-beautiful-api-server.alma29v1.repl.co</key>
+                       <key>big-beautiful-server.alma29v1.repl.co</key>
                        <dict>
                            <key>NSExceptionAllowsInsecureHTTPLoads</key>
                            <false/>

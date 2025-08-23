@@ -19,7 +19,7 @@ def test_replit_connection():
         return
 
     # Replit server URL (replace with your actual URL)
-    base_url = "https://big-beautiful-api-server.alma29v1.repl.co"
+    base_url = "https://big-beautiful-server.alma29v1.repl.co"
 
     headers = {
         "X-API-Key": api_key,

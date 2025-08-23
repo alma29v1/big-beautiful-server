@@ -229,7 +229,7 @@ class BigBeautifulAPIClient: ObservableObject {
 
     // Redundant server configuration
     private let serverConfigurations = [
-        ServerConfig(name: "Replit Cloud", host: "big-beautiful-api-server.alma29v1.repl.co", port: "443", priority: 1),
+        ServerConfig(name: "Replit Cloud", host: "big-beautiful-server.alma29v1.repl.co", port: "443", priority: 1),
         ServerConfig(name: "Local Network", host: "192.168.84.130", port: "5001", priority: 2),
         ServerConfig(name: "Internet Access", host: "65.190.137.27", port: "5001", priority: 3),
         ServerConfig(name: "Localhost", host: "127.0.0.1", port: "5001", priority: 4)
