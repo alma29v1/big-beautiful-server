@@ -222,7 +222,9 @@ class BigBeautifulAPIClient: ObservableObject {
     @Published var serverPort = "5001"
     @Published var currentServerIndex = 0
     @Published var connectionStatus = "Disconnected"
-    let apiKey = "uTs6R5kZaQBp5iAUJWkf1r5hQGixWd0uPaFWAQ-AEWg"
+    // API Key should be set in environment variables or configuration
+    // For production, this should be stored securely
+    let apiKey = "YOUR_API_KEY_HERE" // Replace with actual key when deploying
 
     @Published var isLoading = false
     @Published var error: String?

@@ -1,15 +1,19 @@
 # 🔑 API Key Reference
 
-## **New Secure API Key**
-```
-uTs6R5kZaQBp5iAUJWkf1r5hQGixWd0uPaFWAQ-AEWg
+## **API Key Setup**
+
+**⚠️ IMPORTANT: Generate your own API key for security!**
+
+```bash
+# Generate a new secure API key
+python3 -c "import secrets; print('New API Key:', secrets.token_urlsafe(32))"
 ```
 
 ## **Where to Use This Key**
 
 ### **1. Replit Environment Variables**
 - **Key**: `MOBILE_APP_API_KEY`
-- **Value**: `uTs6R5kZaQBp5iAUJWkf1r5hQGixWd0uPaFWAQ-AEWg`
+- **Value**: `YOUR_GENERATED_API_KEY_HERE`
 
 ### **2. iPhone App**
 - Already updated in `BigBeautifulAPIClient.swift`
@@ -17,13 +21,13 @@ uTs6R5kZaQBp5iAUJWkf1r5hQGixWd0uPaFWAQ-AEWg
 
 ### **3. Testing**
 ```bash
-export MOBILE_APP_API_KEY="uTs6R5kZaQBp5iAUJWkf1r5hQGixWd0uPaFWAQ-AEWg"
+export MOBILE_APP_API_KEY="YOUR_GENERATED_API_KEY_HERE"
 python test_replit_connection_secure.py
 ```
 
 ### **4. curl Testing**
 ```bash
-curl -H "X-API-Key: uTs6R5kZaQBp5iAUJWkf1r5hQGixWd0uPaFWAQ-AEWg" \
+curl -H "X-API-Key: YOUR_GENERATED_API_KEY_HERE" \
      https://your-repl-url.repl.co/api/contacts
 ```
 

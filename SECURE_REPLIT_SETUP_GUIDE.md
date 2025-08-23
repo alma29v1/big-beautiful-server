@@ -14,9 +14,11 @@ Your previous API keys were exposed when the repository went public. This new ve
 
 ## 🔑 **New API Key**
 
-**Your new secure API key is:**
-```
-uTs6R5kZaQBp5iAUJWkf1r5hQGixWd0uPaFWAQ-AEWg
+**⚠️ IMPORTANT: Generate your own API key!**
+
+```bash
+# Generate a new secure API key
+python3 -c "import secrets; print('New API Key:', secrets.token_urlsafe(32))"
 ```
 
 **⚠️ IMPORTANT: Keep this key secret! Never commit it to public repositories.**
@@ -40,7 +42,7 @@ uTs6R5kZaQBp5iAUJWkf1r5hQGixWd0uPaFWAQ-AEWg
 
 ```
 Key: MOBILE_APP_API_KEY
-Value: uTs6R5kZaQBp5iAUJWkf1r5hQGixWd0uPaFWAQ-AEWg
+   Value: YOUR_GENERATED_API_KEY_HERE
 ```
 
 ```
@@ -74,7 +76,7 @@ Your iPhone app is already updated with the new API key and will connect to:
 ### **Option 1: Use the Secure Test Script**
 ```bash
 # Set your API key as environment variable
-export MOBILE_APP_API_KEY="uTs6R5kZaQBp5iAUJWkf1r5hQGixWd0uPaFWAQ-AEWg"
+export MOBILE_APP_API_KEY="YOUR_GENERATED_API_KEY_HERE"
 
 # Run the test
 python test_replit_connection_secure.py
@@ -86,7 +88,7 @@ python test_replit_connection_secure.py
 curl https://your-repl-name.your-username.repl.co/api/health
 
 # Test contacts (with new API key)
-curl -H "X-API-Key: uTs6R5kZaQBp5iAUJWkf1r5hQGixWd0uPaFWAQ-AEWg" \
+curl -H "X-API-Key: YOUR_GENERATED_API_KEY_HERE" \
      https://your-repl-name.your-username.repl.co/api/contacts
 ```
 
@@ -124,7 +126,7 @@ curl -H "X-API-Key: uTs6R5kZaQBp5iAUJWkf1r5hQGixWd0uPaFWAQ-AEWg" \
 
 ### **API Key Issues**
 - Ensure `X-API-Key` header is included
-- Verify the key matches: `uTs6R5kZaQBp5iAUJWkf1r5hQGixWd0uPaFWAQ-AEWg`
+- Verify the key matches your generated API key
 
 ### **Google API Issues**
 - If geocoding doesn't work, set `GOOGLE_API_KEY` in Secrets

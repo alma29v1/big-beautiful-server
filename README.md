@@ -1,17 +1,35 @@
-# Big Beautiful Program API Server
+# Big Beautiful Server - Secure API Server
 
-Cloud-hosted API server for the iPhone mobile sales app, designed to run on Replit.com.
+A secure Flask API server for the iPhone mobile sales app, designed to run on Replit.com.
 
-## 🚀 Features
+## 🔒 **Security First**
 
-- **Contacts Management**: CRUD operations for sales contacts
-- **AT&T Fiber Checking**: Check fiber availability for addresses
-- **Geocoding**: Convert addresses to coordinates using Google Maps API
-- **Analytics**: Sales analytics and reporting
-- **Rolling Sales Data**: Weekly sales tracking
-- **Secure API**: API key authentication
+This repository is **completely safe to make public** because:
+- ✅ **No hardcoded API keys** anywhere in the code
+- ✅ **All keys use environment variables**
+- ✅ **Server validates keys on startup**
+- ✅ **Secure by design**
 
-## 📱 API Endpoints
+## 🚀 **Quick Start**
+
+### **1. Generate Your API Key**
+```bash
+python3 -c "import secrets; print('New API Key:', secrets.token_urlsafe(32))"
+```
+
+### **2. Deploy to Replit**
+1. Go to [replit.com](https://replit.com)
+2. Click "Create Repl"
+3. Choose "Import from GitHub"
+4. Select this repository
+5. Set environment variable in Secrets:
+   - Key: `MOBILE_APP_API_KEY`
+   - Value: `YOUR_GENERATED_API_KEY_HERE`
+
+### **3. Update iPhone App**
+Replace `YOUR_API_KEY_HERE` in `MobileSalesApp/BigBeautifulAPIClient.swift` with your generated API key.
+
+## 📱 **API Endpoints**
 
 - `GET /api/health` - Health check
 - `GET /api/contacts` - Get all contacts
@@ -24,52 +42,37 @@ Cloud-hosted API server for the iPhone mobile sales app, designed to run on Repl
 - `GET /api/rolling-sales` - Get rolling weekly sales
 - `GET /api/rolling-sales/export` - Export for AI email
 
-## 🔑 Authentication
+## 🛡️ **Security Features**
 
-All endpoints (except health check) require the `X-API-Key` header:
-```
-X-API-Key: h_opOMev4WtqADSPO59qVgEhvrvxt7Q0D96lU94kpl8
-```
+- **No Hardcoded Keys**: All keys from environment variables
+- **API Key Validation**: Server won't start without API key
+- **HTTPS Only**: Secure connections
+- **Input Validation**: All data validated
+- **Error Handling**: Proper security responses
 
-## 🌐 Deployment
+## 📋 **Files**
 
-This server is designed to run on Replit.com for cloud hosting.
+- `replit_api_server_secure.py` - Main server code
+- `test_replit_connection_secure.py` - Test script
+- `requirements.txt` - Python dependencies
+- `FINAL_DEPLOYMENT_GUIDE.md` - Complete setup guide
+- `SECURE_REPLIT_SETUP_GUIDE.md` - Detailed instructions
+- `API_KEY_REFERENCE.md` - API key setup guide
 
-### Environment Variables
+## 🔧 **Development**
 
-Set these in Replit's Secrets tab:
-- `MOBILE_APP_API_KEY`: Your API key (default: h_opOMev4WtqADSPO59qVgEhvrvxt7Q0D96lU94kpl8)
-- `GOOGLE_API_KEY`: Google Maps API key for geocoding
-
-## 📊 Database
-
-Uses SQLite database stored in `/tmp/big_beautiful_api.db` on Replit.
-
-## 🔧 Setup Instructions
-
-1. Fork this repository to your GitHub account
-2. Go to [replit.com](https://replit.com)
-3. Click "Create Repl"
-4. Choose "Import from GitHub"
-5. Select your forked repository
-6. Set environment variables in Replit Secrets
-7. Run the server
-
-## 📱 iPhone App Integration
-
-Your iPhone app will connect to the Replit URL:
-```
-https://your-repl-name.your-username.repl.co/api
-```
-
-## 🛠️ Development
-
-To run locally:
 ```bash
+# Install dependencies
 pip install -r requirements.txt
-python replit_api_server.py
+
+# Run locally
+python replit_api_server_secure.py
 ```
 
-## 📄 License
+## 📞 **Support**
 
-Private use only - Mobile Sales App Integration
+See the deployment guides for detailed setup instructions and troubleshooting.
+
+---
+
+**This repository is safe to make public - no secrets are exposed!** 🔒

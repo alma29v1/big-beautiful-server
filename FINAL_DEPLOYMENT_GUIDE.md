@@ -2,16 +2,18 @@
 
 ## 📋 **Repository Status**
 
-✅ **New GitHub Repository**: https://github.com/alma29v1/big-beautiful-server.git  
-✅ **Secure API Server**: No hardcoded keys  
-✅ **iPhone App Updated**: Ready to connect  
-✅ **All Files Pushed**: Complete codebase uploaded  
+✅ **New GitHub Repository**: https://github.com/alma29v1/big-beautiful-server.git
+✅ **Secure API Server**: No hardcoded keys
+✅ **iPhone App Updated**: Ready to connect
+✅ **All Files Pushed**: Complete codebase uploaded
 
 ## 🔑 **API Key Information**
 
-**Your secure API key:**
-```
-uTs6R5kZaQBp5iAUJWkf1r5hQGixWd0uPaFWAQ-AEWg
+**⚠️ IMPORTANT: Generate your own API key!**
+
+```bash
+# Generate a new secure API key
+python3 -c "import secrets; print('New API Key:', secrets.token_urlsafe(32))"
 ```
 
 ## 🌐 **Replit Deployment Steps**
@@ -29,7 +31,7 @@ uTs6R5kZaQBp5iAUJWkf1r5hQGixWd0uPaFWAQ-AEWg
 2. Add this variable:
    ```
    Key: MOBILE_APP_API_KEY
-   Value: uTs6R5kZaQBp5iAUJWkf1r5hQGixWd0uPaFWAQ-AEWg
+   Value: YOUR_GENERATED_API_KEY_HERE
    ```
 
 ### **Step 3: Run the Server**
@@ -49,7 +51,7 @@ Your iPhone app is configured to connect to:
 ### **Test the Server**
 ```bash
 # Set API key
-export MOBILE_APP_API_KEY="uTs6R5kZaQBp5iAUJWkf1r5hQGixWd0uPaFWAQ-AEWg"
+export MOBILE_APP_API_KEY="YOUR_GENERATED_API_KEY_HERE"
 
 # Run test
 python test_replit_connection_secure.py
@@ -61,7 +63,7 @@ python test_replit_connection_secure.py
 curl https://big-beautiful-server.alma29v1.repl.co/api/health
 
 # Test contacts
-curl -H "X-API-Key: uTs6R5kZaQBp5iAUJWkf1r5hQGixWd0uPaFWAQ-AEWg" \
+curl -H "X-API-Key: YOUR_GENERATED_API_KEY_HERE" \
      https://big-beautiful-server.alma29v1.repl.co/api/contacts
 ```
 
@@ -80,11 +82,11 @@ curl -H "X-API-Key: uTs6R5kZaQBp5iAUJWkf1r5hQGixWd0uPaFWAQ-AEWg" \
 
 ## 🛡️ **Security Features**
 
-✅ **No Hardcoded Keys**: All keys from environment variables  
-✅ **API Key Validation**: Server validates on startup  
-✅ **HTTPS Only**: Secure connections  
-✅ **Input Validation**: All data validated  
-✅ **Error Handling**: Proper security responses  
+✅ **No Hardcoded Keys**: All keys from environment variables
+✅ **API Key Validation**: Server validates on startup
+✅ **HTTPS Only**: Secure connections
+✅ **Input Validation**: All data validated
+✅ **Error Handling**: Proper security responses
 
 ## 🚨 **Troubleshooting**
 
