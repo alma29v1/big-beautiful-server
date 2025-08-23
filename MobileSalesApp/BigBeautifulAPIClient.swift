@@ -222,16 +222,17 @@ class BigBeautifulAPIClient: ObservableObject {
     @Published var serverPort = "5001"
     @Published var currentServerIndex = 0
     @Published var connectionStatus = "Disconnected"
-    let apiKey = "h_opOMev4WtqADSPO59qVgEhvrvxt7Q0D96lU94kpl8"
+    let apiKey = "uTs6R5kZaQBp5iAUJWkf1r5hQGixWd0uPaFWAQ-AEWg"
 
     @Published var isLoading = false
     @Published var error: String?
 
     // Redundant server configuration
     private let serverConfigurations = [
-        ServerConfig(name: "Local Network", host: "192.168.84.130", port: "5001", priority: 1),
-        ServerConfig(name: "Internet Access", host: "65.190.137.27", port: "5001", priority: 2),
-        ServerConfig(name: "Localhost", host: "127.0.0.1", port: "5001", priority: 3)
+        ServerConfig(name: "Replit Cloud", host: "big-beautiful-api-server.alma29v1.repl.co", port: "443", priority: 1),
+        ServerConfig(name: "Local Network", host: "192.168.84.130", port: "5001", priority: 2),
+        ServerConfig(name: "Internet Access", host: "65.190.137.27", port: "5001", priority: 3),
+        ServerConfig(name: "Localhost", host: "127.0.0.1", port: "5001", priority: 4)
     ]
 
     init() {
@@ -247,7 +248,9 @@ class BigBeautifulAPIClient: ObservableObject {
     }
 
     private func updateBaseURL() {
-        baseURL = "http://\(serverHost):\(serverPort)/api"
+        // Use HTTPS for Replit, HTTP for local servers
+        let urlProtocol = serverHost.contains("repl.co") ? "https" : "http"
+        baseURL = "\(urlProtocol)://\(serverHost):\(serverPort)/api"
     }
 
     private func saveServerSettings() {
@@ -261,6 +264,7 @@ class BigBeautifulAPIClient: ObservableObject {
         serverHost = UserDefaults.standard.string(forKey: "serverHost") ?? serverConfigurations[0].host
         serverPort = UserDefaults.standard.string(forKey: "serverPort") ?? serverConfigurations[0].port
         currentServerIndex = UserDefaults.standard.integer(forKey: "currentServerIndex")
+        updateBaseURL()
     }
 
     // MARK: - Redundant Connection Methods
@@ -270,7 +274,9 @@ class BigBeautifulAPIClient: ObservableObject {
             do {
                 print("🔄 Trying server \(index + 1)/\(serverConfigurations.count): \(config.name) (\(config.host):\(config.port))")
 
-                let testURL = "http://\(config.host):\(config.port)/api/health"
+                // Use HTTPS for Replit, HTTP for local servers
+                let urlProtocol = config.host.contains("repl.co") ? "https" : "http"
+                let testURL = "\(urlProtocol)://\(config.host):\(config.port)/api/health"
                 guard let url = URL(string: testURL) else { continue }
 
                 var request = URLRequest(url: url)
@@ -320,7 +326,9 @@ class BigBeautifulAPIClient: ObservableObject {
 
     private func testServer(_ config: ServerConfig) async -> ServerTestResult {
         do {
-            let testURL = "http://\(config.host):\(config.port)/api/health"
+            // Use HTTPS for Replit, HTTP for local servers
+            let urlProtocol = config.host.contains("repl.co") ? "https" : "http"
+            let testURL = "\(urlProtocol)://\(config.host):\(config.port)/api/health"
             guard let url = URL(string: testURL) else {
                 return ServerTestResult(config: config, isAvailable: false, error: "Invalid URL")
             }

@@ -4,7 +4,7 @@ import MapKit
 struct RouteListView: View {
     @EnvironmentObject var dataManager: DataManager
     @State private var showingCreateRoute = false
-    
+
     var body: some View {
         VStack {
                 // Statistics
@@ -13,7 +13,7 @@ struct RouteListView: View {
                     StatCard(title: "Active", value: "\(dataManager.routes.count)", color: .green)
                 }
                 .padding(.horizontal)
-                
+
                 // Route list
                 List(dataManager.routes) { route in
                     RouteRowView(route: route)
@@ -40,7 +40,7 @@ struct RouteListView: View {
 struct RouteRowView: View {
     let route: Route
     @EnvironmentObject var dataManager: DataManager
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -48,37 +48,37 @@ struct RouteRowView: View {
                     Text(route.name)
                         .font(.headline)
                         .foregroundColor(.primary)
-                    
+
                     Text("\(route.houseCount) houses")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
-                
+
                 Spacer()
-                
+
                 VStack(alignment: .trailing, spacing: 4) {
                     Text(route.estimatedTime)
                         .font(.caption)
                         .fontWeight(.semibold)
                         .foregroundColor(.blue)
-                    
+
                     Text("Est. Time")
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
             }
-            
+
             HStack {
                 Image(systemName: "person.fill")
                     .font(.caption)
                     .foregroundColor(.blue)
-                
+
                 Text(getSalespersonName())
                     .font(.caption)
                     .foregroundColor(.blue)
-                
+
                 Spacer()
-                
+
                 Button("Export to Maps") {
                     exportRouteToMaps()
                 }
@@ -88,16 +88,16 @@ struct RouteRowView: View {
         }
         .padding(.vertical, 4)
     }
-    
+
     private func getSalespersonName() -> String {
         // In a real app, you'd get this from the data manager
         return "Salesperson"
     }
-    
+
     private func exportRouteToMaps() {
         // Get all houses in this route
         let routeHouses = dataManager.houses.filter { route.houseIds.contains($0.id) }
-        
+
         // Create map items for each house
         let mapItems = routeHouses.map { house in
             let placemark = MKPlacemark(coordinate: house.coordinate)
@@ -105,7 +105,7 @@ struct RouteRowView: View {
             mapItem.name = house.address
             return mapItem
         }
-        
+
         // Open in Apple Maps with all locations
         MKMapItem.openMaps(with: mapItems, launchOptions: [
             MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDriving
@@ -119,13 +119,13 @@ struct CreateRouteView: View {
     @State private var routeName = ""
     @State private var selectedSalesperson: SalesPerson?
     @State private var selectedHouses: Set<UUID> = []
-    
+
     var body: some View {
         NavigationView {
             Form {
                 Section(header: Text("Route Details")) {
                     TextField("Route Name", text: $routeName)
-                    
+
                     Picker("Salesperson", selection: $selectedSalesperson) {
                         Text("Select Salesperson").tag(nil as SalesPerson?)
                         ForEach(dataManager.salespeople) { salesperson in
@@ -133,7 +133,7 @@ struct CreateRouteView: View {
                         }
                     }
                 }
-                
+
                 Section(header: Text("Select Houses")) {
                     ForEach(dataManager.houses) { house in
                         HStack {
@@ -144,9 +144,9 @@ struct CreateRouteView: View {
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
-                            
+
                             Spacer()
-                            
+
                             if selectedHouses.contains(house.id) {
                                 Image(systemName: "checkmark.circle.fill")
                                     .foregroundColor(.blue)
@@ -171,7 +171,7 @@ struct CreateRouteView: View {
                         presentationMode.wrappedValue.dismiss()
                     }
                 }
-                
+
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Create") {
                         createRoute()
@@ -181,16 +181,16 @@ struct CreateRouteView: View {
             }
         }
     }
-    
+
     private func createRoute() {
         guard let salesperson = selectedSalesperson else { return }
-        
+
         let route = Route(
             name: routeName,
             salespersonId: salesperson.id,
             houseIds: Array(selectedHouses)
         )
-        
+
         dataManager.addRoute(route)
         presentationMode.wrappedValue.dismiss()
     }

@@ -19,11 +19,11 @@ struct House: Identifiable, Codable {
     var status: HouseStatus
     var notes: String
     var createdAt: Date
-    
-    init(id: UUID = UUID(), address: String, city: String, state: String, zipCode: String, 
-         latitude: Double, longitude: Double, soldDate: String, price: Double, 
-         contactName: String, contactEmail: String, contactPhone: String, 
-         fiberAvailable: Bool, adtDetected: Bool, status: HouseStatus = .new, 
+
+    init(id: UUID = UUID(), address: String, city: String, state: String, zipCode: String,
+         latitude: Double, longitude: Double, soldDate: String, price: Double,
+         contactName: String, contactEmail: String, contactPhone: String,
+         fiberAvailable: Bool, adtDetected: Bool, status: HouseStatus = .new,
          notes: String = "", createdAt: Date = Date()) {
         self.id = id
         self.address = address
@@ -43,22 +43,22 @@ struct House: Identifiable, Codable {
         self.notes = notes
         self.createdAt = createdAt
     }
-    
+
     var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
-    
+
     var fullAddress: String {
         "\(address), \(city), \(state) \(zipCode)"
     }
-    
+
     var formattedPrice: String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.maximumFractionDigits = 0
         return formatter.string(from: NSNumber(value: price)) ?? "$\(price)"
     }
-    
+
     var statusColor: String {
         switch status {
         case .new:
@@ -84,7 +84,7 @@ enum HouseStatus: String, CaseIterable, Codable {
     case notHome = "notHome"
     case notInterested = "notInterested"
     case sold = "sold"
-    
+
     var displayName: String {
         switch self {
         case .new:
@@ -101,7 +101,7 @@ enum HouseStatus: String, CaseIterable, Codable {
             return "Sold"
         }
     }
-    
+
     var color: String {
         switch self {
         case .new:

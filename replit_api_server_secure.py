@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Big Beautiful Program API Server for Replit.com
+Big Beautiful Program API Server for Replit.com - SECURE VERSION
 This provides a cloud-hosted version of the API for the iPhone app
+NO HARDCODED API KEYS - All keys must be set in environment variables
 """
 
 from flask import Flask, request, jsonify
@@ -16,9 +17,21 @@ from werkzeug.exceptions import HTTPException
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
-# Configuration
-API_KEY = os.getenv('MOBILE_APP_API_KEY', 'h_opOMev4WtqADSPO59qVgEhvrvxt7Q0D96lU94kpl8')
-GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY', 'your_google_api_key_here')
+# Configuration - ALL KEYS MUST BE SET IN ENVIRONMENT VARIABLES
+API_KEY = os.getenv('MOBILE_APP_API_KEY')
+GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
+
+# Validate required environment variables
+if not API_KEY:
+    print("❌ ERROR: MOBILE_APP_API_KEY environment variable is required!")
+    print("💡 Set it in Replit Secrets tab")
+    exit(1)
+
+print(f"✅ API Key loaded: {API_KEY[:8]}...")
+if GOOGLE_API_KEY:
+    print(f"✅ Google API Key loaded: {GOOGLE_API_KEY[:8]}...")
+else:
+    print("⚠️  Google API Key not set - geocoding will be disabled")
 
 # Database setup (using SQLite for Replit)
 DATABASE_PATH = '/tmp/big_beautiful_api.db'
@@ -83,8 +96,10 @@ def health_check():
     return jsonify({
         'status': 'healthy',
         'timestamp': datetime.now().isoformat(),
-        'version': '1.0.0',
-        'server': 'replit-cloud'
+        'version': '2.0.0',
+        'server': 'replit-cloud-secure',
+        'api_key_configured': bool(API_KEY),
+        'google_api_configured': bool(GOOGLE_API_KEY)
     })
 
 @app.route('/api/contacts', methods=['GET'])
@@ -207,6 +222,12 @@ def create_contact():
 @require_api_key
 def geocode_address():
     """Geocode an address using Google Maps API"""
+    if not GOOGLE_API_KEY:
+        return jsonify({
+            'error': 'Google API key not configured',
+            'success': False
+        }), 503
+
     try:
         data = request.get_json()
         address = data.get('address')
@@ -402,7 +423,8 @@ if __name__ == '__main__':
     # Initialize database
     init_database()
 
-    print("🚀 Big Beautiful Program API Server for Replit")
+    print("🚀 Big Beautiful Program API Server for Replit - SECURE VERSION")
+    print("🔒 NO HARDCODED API KEYS - All keys must be set in environment variables")
     print("📱 Available endpoints:")
     print("   GET  /api/health - Health check")
     print("   GET  /api/contacts - Get contacts")
@@ -416,6 +438,7 @@ if __name__ == '__main__':
     print("   GET  /api/rolling-sales/export - Export for AI email")
     print("🔑 API Key Required: X-API-Key header")
     print("🌐 Server will be available at your Replit URL")
+    print("⚠️  IMPORTANT: Set MOBILE_APP_API_KEY in Replit Secrets!")
 
     # Run the app (Replit will handle the port)
     app.run(host='0.0.0.0', port=8080, debug=False)

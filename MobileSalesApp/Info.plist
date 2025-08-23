@@ -35,15 +35,24 @@
                 <key>NSExceptionRequiresForwardSecrecy</key>
                 <false/>
             </dict>
-            <key>localhost</key>
-            <dict>
-                <key>NSExceptionAllowsInsecureHTTPLoads</key>
-                <true/>
-                <key>NSExceptionMinimumTLSVersion</key>
-                <string>TLSv1.0</string>
-                <key>NSExceptionRequiresForwardSecrecy</key>
-                <false/>
-            </dict>
+                                   <key>localhost</key>
+                       <dict>
+                           <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                           <true/>
+                           <key>NSExceptionMinimumTLSVersion</key>
+                           <string>TLSv1.0</string>
+                           <key>NSExceptionRequiresForwardSecrecy</key>
+                           <false/>
+                       </dict>
+                       <key>big-beautiful-api-server.alma29v1.repl.co</key>
+                       <dict>
+                           <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                           <false/>
+                           <key>NSExceptionMinimumTLSVersion</key>
+                           <string>TLSv1.2</string>
+                           <key>NSExceptionRequiresForwardSecrecy</key>
+                           <true/>
+                       </dict>
         </dict>
     </dict>
     <key>CFBundleDevelopmentRegion</key>

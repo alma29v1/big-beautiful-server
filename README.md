@@ -72,4 +72,4 @@ python replit_api_server.py
 
 ## 📄 License
 
-Private use only - Mobile Sales App Integration 
+Private use only - Mobile Sales App Integration
