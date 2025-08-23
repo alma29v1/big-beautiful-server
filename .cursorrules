@@ -1,0 +1,68 @@
+# Cursor Rules for iOS Mobile Sales App Development
+
+## Project Context
+This is an iOS application built with SwiftUI for door-to-door sales management. The app integrates with a Python Flask backend and includes features for house management, incident tracking, route planning, and map integration.
+
+## Code Style & Standards
+- Use Swift 5.9+ syntax and best practices
+- Follow SwiftUI declarative programming patterns
+- Implement proper error handling and optional binding
+- Use meaningful variable and function names
+- Add comprehensive comments for complex logic
+- Follow iOS Human Interface Guidelines
+
+## Architecture Guidelines
+- Use MVVM pattern with @StateObject and @EnvironmentObject
+- Keep views simple and focused on UI
+- Separate data logic into DataManager class
+- Use proper SwiftUI lifecycle management
+- Implement proper memory management
+
+## File Organization
+- Group related files together (Models, Views, Managers)
+- Use descriptive file names
+- Keep files under 500 lines when possible
+- Separate concerns between data, UI, and business logic
+
+## SwiftUI Best Practices
+- Use @State for local view state
+- Use @Binding for parent-child communication
+- Use @EnvironmentObject for app-wide state
+- Implement proper view modifiers
+- Use lazy loading for performance
+
+## Error Handling
+- Always handle optional values safely
+- Provide meaningful error messages
+- Use Result types for async operations
+- Implement proper loading states
+
+## Performance Considerations
+- Use lazy loading for large lists
+- Minimize view updates
+- Use proper data structures
+- Implement efficient data fetching
+
+## Testing & Debugging
+- Add print statements for debugging
+- Use Xcode's debugging tools
+- Test on both simulator and device
+- Verify all user flows
+
+## Backend Integration
+- Handle network errors gracefully
+- Implement proper data synchronization
+- Use proper HTTP status code handling
+- Cache data for offline use
+
+## Security & Privacy
+- Follow iOS privacy guidelines
+- Handle user permissions properly
+- Secure sensitive data
+- Use proper authentication
+
+## Documentation
+- Document complex functions
+- Add inline comments for business logic
+- Keep README files updated
+- Document API integrations
