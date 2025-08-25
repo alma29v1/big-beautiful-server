@@ -24,7 +24,10 @@ struct HouseListView: View {
 
         houses = houses.filter { isHouseWithinAgeFilter($0) }
 
-        return houses.sorted { $0.createdAt > $1.createdAt }
+        return houses.sorted { (house1, house2) in
+            // Since House doesn't have createdAt, sort by soldDate
+            house1.soldDate > house2.soldDate
+        }
     }
 
     private func isHouseWithinAgeFilter(_ house: House) -> Bool {

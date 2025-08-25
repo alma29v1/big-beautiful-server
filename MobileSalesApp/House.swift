@@ -17,11 +17,12 @@ struct House: Identifiable, Codable {
     let fiberAvailable: Bool
     let adtDetected: Bool
     let adtSignDetected: Bool // Corrected property for ADT sign detection
-    @CodableEnum var status: HouseStatus = .new
+    var status: HouseStatus = .new
+    var notes: String = ""
 
-    // Update CodingKeys to include attSignDetected
+    // Update CodingKeys to include notes
     enum CodingKeys: String, CodingKey {
-        case id, address, city, state, latitude, longitude, price, status
+        case id, address, city, state, latitude, longitude, price, status, notes
         case zipCode = "zip_code"
         case soldDate = "sold_date"
         case contactName = "contact_name"
@@ -33,7 +34,7 @@ struct House: Identifiable, Codable {
     }
 
     // Update init if needed
-    init(address: String, city: String, state: String, zipCode: String, latitude: Double, longitude: Double, soldDate: String, price: Double, contactName: String, contactEmail: String, contactPhone: String, fiberAvailable: Bool, adtDetected: Bool, adtSignDetected: Bool) {
+    init(address: String, city: String, state: String, zipCode: String, latitude: Double, longitude: Double, soldDate: String, price: Double, contactName: String, contactEmail: String, contactPhone: String, fiberAvailable: Bool, adtDetected: Bool, adtSignDetected: Bool = false) {
         self.id = UUID()
         self.address = address
         self.city = city
@@ -49,6 +50,8 @@ struct House: Identifiable, Codable {
         self.fiberAvailable = fiberAvailable
         self.adtDetected = adtDetected
         self.adtSignDetected = adtSignDetected
+        self.status = .new
+        self.notes = ""
     }
 
     var coordinate: CLLocationCoordinate2D {

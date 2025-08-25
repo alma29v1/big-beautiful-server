@@ -79,23 +79,78 @@ def init_database():
     # Check if we need to populate with sample data
     cursor.execute("SELECT COUNT(*) FROM contacts")
     count = cursor.fetchone()[0]
-    
+
     if count == 0:
         # Add sample contacts from Redfin leads
         sample_contacts = [
-            ("123 Ocean View Dr", "Wilmington", "NC", "28401", "Sample Owner 1", "owner1@example.com", "910-555-0201", True, "2024-01-20T10:00:00", "redfin"),
-            ("456 Coastal Blvd", "Leland", "NC", "28451", "Sample Owner 2", "owner2@example.com", "910-555-0202", False, "2024-01-21T11:00:00", "redfin"),
-            ("789 Harbor Point Way", "Southport", "NC", "28461", "Sample Owner 3", "owner3@example.com", "910-555-0203", True, "2024-01-22T12:00:00", "redfin"),
-            ("321 Riverside Ave", "Hampstead", "NC", "28443", "Sample Owner 4", "owner4@example.com", "910-555-0204", True, "2024-01-23T13:00:00", "redfin"),
-            ("654 Marina Way", "Carolina Beach", "NC", "28428", "Sample Owner 5", "owner5@example.com", "910-555-0205", False, "2024-01-24T14:00:00", "redfin")
+            (
+                "123 Ocean View Dr",
+                "Wilmington",
+                "NC",
+                "28401",
+                "Sample Owner 1",
+                "owner1@example.com",
+                "910-555-0201",
+                True,
+                "2024-01-20T10:00:00",
+                "redfin",
+            ),
+            (
+                "456 Coastal Blvd",
+                "Leland",
+                "NC",
+                "28451",
+                "Sample Owner 2",
+                "owner2@example.com",
+                "910-555-0202",
+                False,
+                "2024-01-21T11:00:00",
+                "redfin",
+            ),
+            (
+                "789 Harbor Point Way",
+                "Southport",
+                "NC",
+                "28461",
+                "Sample Owner 3",
+                "owner3@example.com",
+                "910-555-0203",
+                True,
+                "2024-01-22T12:00:00",
+                "redfin",
+            ),
+            (
+                "321 Riverside Ave",
+                "Hampstead",
+                "NC",
+                "28443",
+                "Sample Owner 4",
+                "owner4@example.com",
+                "910-555-0204",
+                True,
+                "2024-01-23T13:00:00",
+                "redfin",
+            ),
+            (
+                "654 Marina Way",
+                "Carolina Beach",
+                "NC",
+                "28428",
+                "Sample Owner 5",
+                "owner5@example.com",
+                "910-555-0205",
+                False,
+                "2024-01-24T14:00:00",
+                "redfin",
+            ),
         ]
-        
+
         cursor.executemany(
             """
             INSERT INTO contacts (address, city, state, zip_code, owner_name, owner_email, owner_phone, fiber_available, created_date, source)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            sample_contacts
+            sample_contacts,
         )
         print(f"✅ Added {len(sample_contacts)} sample contacts")
 
@@ -508,7 +563,7 @@ def get_redfin_leads():
                 "longitude": -77.9328,
                 "owner_name": "Sample Owner 1",
                 "owner_phone": "910-555-0201",
-                "owner_email": "owner1@example.com"
+                "owner_email": "owner1@example.com",
             },
             {
                 "id": 2,
@@ -528,7 +583,7 @@ def get_redfin_leads():
                 "longitude": -78.0147,
                 "owner_name": "Sample Owner 2",
                 "owner_phone": "910-555-0202",
-                "owner_email": "owner2@example.com"
+                "owner_email": "owner2@example.com",
             },
             {
                 "id": 3,
@@ -548,17 +603,19 @@ def get_redfin_leads():
                 "longitude": -78.0089,
                 "owner_name": "Sample Owner 3",
                 "owner_phone": "910-555-0203",
-                "owner_email": "owner3@example.com"
-            }
+                "owner_email": "owner3@example.com",
+            },
         ]
-        
-        return jsonify({
-            "leads": mock_leads, 
-            "total": len(mock_leads),
-            "source": "redfin",
-            "timestamp": datetime.now().isoformat(),
-            "note": "Mock data - replace with real PC integration"
-        })
+
+        return jsonify(
+            {
+                "leads": mock_leads,
+                "total": len(mock_leads),
+                "source": "redfin",
+                "timestamp": datetime.now().isoformat(),
+                "note": "Mock data - replace with real PC integration",
+            }
+        )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
