@@ -273,6 +273,7 @@ class DataManager: ObservableObject {
             await loadContactsFromBigBeautiful()
             await loadAnalyticsFromBigBeautiful()
             await loadRollingSalesFromBigBeautiful()
+            await loadIncidentsFromBigBeautiful()
 
             // Set sync timestamp on successful connection
             await MainActor.run {
@@ -417,11 +418,45 @@ class DataManager: ObservableObject {
         }
     }
 
+    func loadIncidentsFromBigBeautiful() async {
+        do {
+            let response = try await bigBeautifulAPIClient.getIncidents()
+            await MainActor.run {
+                // Convert server incidents to app incidents
+                self.incidents = response.incidents.map { serverIncident in
+                    Incident(
+                        address: serverIncident.address,
+                        incidentType: mapIncidentType(serverIncident.incident_type),
+                        description: serverIncident.description,
+                        latitude: serverIncident.latitude,
+                        longitude: serverIncident.longitude,
+                        assignedSalespersonId: salespeople.first?.id ?? UUID() // Default assignment
+                    )
+                }
+            }
+            print("✅ Loaded \(response.incidents.count) incidents from Big Beautiful Program")
+        } catch {
+            print("❌ Failed to load incidents: \(error)")
+        }
+    }
+    
+    private func mapIncidentType(_ serverType: String) -> IncidentType {
+        switch serverType.lowercased() {
+        case "fire": return .fire
+        case "break_in": return .breakIn
+        case "storm": return .storm
+        case "flood": return .flood
+        case "theft": return .theft
+        default: return .theft // Default fallback
+        }
+    }
+
     func refreshBigBeautifulData() async {
         // Refresh all data from Big Beautiful Program
         await loadContactsFromBigBeautiful()
         await loadAnalyticsFromBigBeautiful()
         await loadRollingSalesFromBigBeautiful()
+        await loadIncidentsFromBigBeautiful()
         await syncWithBigBeautiful()
         print("Big Beautiful Program data refreshed")
     }

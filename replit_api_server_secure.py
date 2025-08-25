@@ -195,8 +195,23 @@ def health_check():
 @app.route("/api/contacts", methods=["GET"])
 @require_api_key
 def get_contacts():
-    """Get all contacts"""
+    """Get all contacts - try Big Beautiful Program first, fallback to local"""
     try:
+        # Try to get real data from Big Beautiful Program
+        try:
+            pc_response = requests.get("http://localhost:5001/api/contacts", timeout=3)
+            if pc_response.status_code == 200:
+                pc_data = pc_response.json()
+                return jsonify({
+                    "contacts": pc_data.get("contacts", []),
+                    "total": pc_data.get("total", 0),
+                    "timestamp": datetime.now().isoformat(),
+                    "source": "big_beautiful_program"
+                })
+        except:
+            pass  # Fall back to local database
+        
+        # Fallback: Get from local database
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM contacts ORDER BY created_date DESC")
@@ -226,6 +241,7 @@ def get_contacts():
                 "contacts": contacts_list,
                 "total": len(contacts_list),
                 "timestamp": datetime.now().isoformat(),
+                "source": "local_database"
             }
         )
     except Exception as e:
@@ -543,7 +559,22 @@ def get_redfin_leads():
     """Fetch real Redfin leads from Big Beautiful Program on PC"""
     try:
         # Real integration: Call PC program's API
-        # For now, return mock data until PC integration is setup
+        # Try to connect to Big Beautiful Program on PC first
+        try:
+            pc_response = requests.get("http://localhost:5001/api/rolling-sales", timeout=2)
+            if pc_response.status_code == 200:
+                pc_data = pc_response.json()
+                return jsonify({
+                    "leads": pc_data.get("leads", []),
+                    "total": len(pc_data.get("leads", [])),
+                    "source": "big_beautiful_program",
+                    "timestamp": datetime.now().isoformat(),
+                    "note": "Real data from Big Beautiful Program"
+                })
+        except:
+            pass  # Fall back to mock data
+        
+        # Fallback: Return mock data for demo purposes
         mock_leads = [
             {
                 "id": 1,
@@ -616,6 +647,76 @@ def get_redfin_leads():
                 "note": "Mock data - replace with real PC integration",
             }
         )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/incidents", methods=["GET"])
+@require_api_key
+def get_incidents():
+    """Get incidents from Big Beautiful Program or return mock data"""
+    try:
+        # Try to get real incidents from Big Beautiful Program
+        try:
+            pc_response = requests.get("http://localhost:5001/api/incidents", timeout=3)
+            if pc_response.status_code == 200:
+                pc_data = pc_response.json()
+                return jsonify({
+                    "incidents": pc_data.get("incidents", []),
+                    "total": pc_data.get("total", 0),
+                    "timestamp": datetime.now().isoformat(),
+                    "source": "big_beautiful_program"
+                })
+        except:
+            pass  # Fall back to mock data
+        
+        # Fallback: Return mock incidents for demo
+        mock_incidents = [
+            {
+                "id": 1,
+                "address": "456 Coastal Blvd, Leland, NC",
+                "incident_type": "fire",
+                "description": "House fire reported in neighborhood - ADT system helped alert emergency services",
+                "latitude": 34.2763,
+                "longitude": -78.0147,
+                "status": "resolved",
+                "created_date": "2024-01-21T15:30:00",
+                "assigned_salesperson": "Mike Sales",
+                "priority": "high"
+            },
+            {
+                "id": 2,
+                "address": "789 Harbor Point Way, Southport, NC",
+                "incident_type": "break_in",
+                "description": "Break-in attempt - homeowner wants security consultation",
+                "latitude": 33.9107,
+                "longitude": -78.0089,
+                "status": "active",
+                "created_date": "2024-01-23T09:15:00",
+                "assigned_salesperson": "Sarah Closer",
+                "priority": "high"
+            },
+            {
+                "id": 3,
+                "address": "321 Riverside Ave, Hampstead, NC",
+                "incident_type": "storm",
+                "description": "Storm damage - power outage, good opportunity for backup system sales",
+                "latitude": 34.3677,
+                "longitude": -77.7058,
+                "status": "active",
+                "created_date": "2024-01-24T18:45:00",
+                "assigned_salesperson": "Tom Door",
+                "priority": "medium"
+            }
+        ]
+        
+        return jsonify({
+            "incidents": mock_incidents,
+            "total": len(mock_incidents),
+            "timestamp": datetime.now().isoformat(),
+            "source": "mock_data",
+            "note": "Mock incidents - will be replaced with real data when Big Beautiful Program is accessible"
+        })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

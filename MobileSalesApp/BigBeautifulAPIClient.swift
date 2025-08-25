@@ -157,6 +157,26 @@ struct EmailStats: Codable {
     }
 }
 
+struct ServerIncident: Codable {
+    let id: Int
+    let address: String
+    let incident_type: String
+    let description: String
+    let latitude: Double
+    let longitude: Double
+    let status: String
+    let created_date: String
+    let assigned_salesperson: String
+    let priority: String
+}
+
+struct IncidentsResponse: Codable {
+    let incidents: [ServerIncident]
+    let total: Int
+    let timestamp: String
+    let source: String
+}
+
 struct EmailRecipient: Codable, Identifiable {
     let id: Int
     let email: String
@@ -474,6 +494,10 @@ class BigBeautifulAPIClient: ObservableObject {
 
     func exportRollingSales() async throws -> [String: String] {
         return try await makeRequest(endpoint: "/rolling-sales/export", method: "GET")
+    }
+    
+    func getIncidents() async throws -> IncidentsResponse {
+        return try await makeRequest(endpoint: "/incidents", method: "GET")
     }
 
     // MARK: - Territory Management Methods
