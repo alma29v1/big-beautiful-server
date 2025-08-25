@@ -9,49 +9,48 @@ struct House: Identifiable, Codable {
     let zipCode: String
     let latitude: Double
     let longitude: Double
-    let soldDate: String
-    let price: Double
-    let contactName: String
-    let contactEmail: String
-    let contactPhone: String
-    let fiberAvailable: Bool
-    let adtDetected: Bool
-    let adtSignDetected: Bool // Corrected property for ADT sign detection
     var status: HouseStatus = .new
+    let ownerName: String
+    let ownerEmail: String
+    let ownerPhone: String
+    let soldDate: String
+    let price: Int?
+    let squareFootage: Int?
+    let bedrooms: Int?
+    let bathrooms: Int?
+    let adtSignDetected: Bool
     var notes: String = ""
 
-    // Update CodingKeys to include notes
     enum CodingKeys: String, CodingKey {
-        case id, address, city, state, latitude, longitude, price, status, notes
+        case id, address, city, state, latitude, longitude, status, price, bedrooms, bathrooms, notes
         case zipCode = "zip_code"
+        case ownerName = "owner_name"
+        case ownerEmail = "owner_email"
+        case ownerPhone = "owner_phone"
         case soldDate = "sold_date"
-        case contactName = "contact_name"
-        case contactEmail = "contact_email"
-        case contactPhone = "contact_phone"
-        case fiberAvailable = "fiber_available"
-        case adtDetected = "adt_detected"
+        case squareFootage = "square_footage"
         case adtSignDetected = "adt_sign_detected"
     }
 
-    // Update init if needed
-    init(address: String, city: String, state: String, zipCode: String, latitude: Double, longitude: Double, soldDate: String, price: Double, contactName: String, contactEmail: String, contactPhone: String, fiberAvailable: Bool, adtDetected: Bool, adtSignDetected: Bool = false) {
-        self.id = UUID()
+    init(id: UUID = UUID(), address: String, city: String, state: String, zipCode: String, latitude: Double, longitude: Double, status: HouseStatus = .new, ownerName: String, ownerEmail: String, ownerPhone: String, soldDate: String, price: Int? = nil, squareFootage: Int? = nil, bedrooms: Int? = nil, bathrooms: Int? = nil, adtSignDetected: Bool = false, notes: String = "") {
+        self.id = id
         self.address = address
         self.city = city
         self.state = state
         self.zipCode = zipCode
         self.latitude = latitude
         self.longitude = longitude
+        self.status = status
+        self.ownerName = ownerName
+        self.ownerEmail = ownerEmail
+        self.ownerPhone = ownerPhone
         self.soldDate = soldDate
         self.price = price
-        self.contactName = contactName
-        self.contactEmail = contactEmail
-        self.contactPhone = contactPhone
-        self.fiberAvailable = fiberAvailable
-        self.adtDetected = adtDetected
+        self.squareFootage = squareFootage
+        self.bedrooms = bedrooms
+        self.bathrooms = bathrooms
         self.adtSignDetected = adtSignDetected
-        self.status = .new
-        self.notes = ""
+        self.notes = notes
     }
 
     var coordinate: CLLocationCoordinate2D {
@@ -63,6 +62,7 @@ struct House: Identifiable, Codable {
     }
 
     var formattedPrice: String {
+        guard let price = price else { return "N/A" }
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.maximumFractionDigits = 0

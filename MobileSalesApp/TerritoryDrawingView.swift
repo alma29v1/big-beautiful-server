@@ -65,7 +65,7 @@ struct TerritoryDrawingView: View {
 
                         Picker("Salesperson", selection: $selectedSalesperson) {
                             Text("Select Salesperson").tag(nil as SalesPerson?)
-                            ForEach(dataManager.salespeople) { person in
+                            ForEach(dataManager.getSalespeople()) { person in
                                 Text(person.name).tag(person as SalesPerson?)
                             }
                         }

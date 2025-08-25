@@ -14,6 +14,7 @@ struct ContentView: View {
                 // Common tabs
                 MapView().environmentObject(dataManager).tabItem { Image(systemName: "map.fill"); Text("Map") }
                 NavigationView { HouseListView().environmentObject(dataManager) }.tabItem { Image(systemName: "house.fill"); Text("Houses") }
+                NavigationView { SalesContextView().environmentObject(dataManager) }.tabItem { Image(systemName: "target"); Text("Sales Context") }
                 NavigationView { IncidentListView().environmentObject(dataManager) }.tabItem { Image(systemName: "exclamationmark.triangle.fill"); Text("Incidents") }
                 NavigationView { RouteListView().environmentObject(dataManager) }.tabItem { Image(systemName: "map.fill"); Text("Routes") }
 
@@ -21,6 +22,8 @@ struct ContentView: View {
                 if userRole == .manager {
                     NavigationView { BigBeautifulIntegrationView().environmentObject(dataManager) }.tabItem { Image(systemName: "server.rack"); Text("Big Beautiful") }
                     NavigationView { RegionAssignmentView().environmentObject(dataManager) }.tabItem { Image(systemName: "person.2.circle"); Text("Regions") }
+                    NavigationView { TerritoryDrawingView().environmentObject(dataManager) }.tabItem { Image(systemName: "map.circle"); Text("Territories") }
+                    NavigationView { LeadMarketplaceView().environmentObject(dataManager) }.tabItem { Image(systemName: "cart.fill"); Text("Marketplace") }
                 }
             }
             .accentColor(.blue)

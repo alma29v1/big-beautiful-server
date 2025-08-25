@@ -177,6 +177,141 @@ struct IncidentsResponse: Codable {
     let source: String
 }
 
+struct RedfinLead: Codable, Identifiable {
+    let id: Int
+    let address: String
+    let city: String
+    let state: String
+    let zipCode: String
+    let bedrooms: Int
+    let bathrooms: Int
+    let squareFeet: Int
+    let salePrice: Int
+    let soldDate: String
+    let propertyType: String
+    let latitude: Double
+    let longitude: Double
+    let ownerName: String
+    let ownerEmail: String
+    let ownerPhone: String
+    let lotSize: Double
+    let listingUrl: String
+
+    enum CodingKeys: String, CodingKey {
+        case id, address, city, state, bedrooms, bathrooms, latitude, longitude
+        case zipCode = "zip_code"
+        case squareFeet = "square_feet"
+        case salePrice = "sale_price"
+        case soldDate = "sold_date"
+        case propertyType = "property_type"
+        case ownerName = "owner_name"
+        case ownerEmail = "owner_email"
+        case ownerPhone = "owner_phone"
+        case lotSize = "lot_size"
+        case listingUrl = "listing_url"
+    }
+}
+
+struct RedfinLeadsResponse: Codable {
+    let leads: [RedfinLead]
+    let total: Int
+    let timestamp: String
+    let source: String
+    let note: String?
+}
+
+// MARK: - Incident Context Models
+
+struct IncidentContextResponse: Codable {
+    let address: String
+    let urgencyScore: Int
+    let primaryIncidentType: String
+    let incidentsWithinMile: Int
+    let lastIncidentDaysAgo: Int
+    let talkingPoints: [String]
+    let productRecommendations: [ProductRecommendation]
+    let objectionResponses: [String: String]
+    let conversationStarters: [String]
+    let timestamp: String
+    
+    enum CodingKeys: String, CodingKey {
+        case address, timestamp
+        case urgencyScore = "urgency_score"
+        case primaryIncidentType = "primary_incident_type"
+        case incidentsWithinMile = "incidents_within_mile"
+        case lastIncidentDaysAgo = "last_incident_days_ago"
+        case talkingPoints = "talking_points"
+        case productRecommendations = "product_recommendations"
+        case objectionResponses = "objection_responses"
+        case conversationStarters = "conversation_starters"
+    }
+}
+
+struct ProductRecommendation: Codable {
+    let product: String
+    let priority: String
+    let reason: String
+}
+
+struct RecentIncidentsResponse: Codable {
+    let recentIncidents: [RecentIncident]
+    let total: Int
+    let searchRadiusMiles: Int
+    let timestamp: String
+    
+    enum CodingKeys: String, CodingKey {
+        case total, timestamp
+        case recentIncidents = "recent_incidents"
+        case searchRadiusMiles = "search_radius_miles"
+    }
+}
+
+struct RecentIncident: Codable {
+    let id: Int
+    let address: String
+    let incidentType: String
+    let daysAgo: Int
+    let distanceMiles: Double
+    let severity: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id, address, severity
+        case incidentType = "incident_type"
+        case daysAgo = "days_ago"
+        case distanceMiles = "distance_miles"
+    }
+}
+
+struct ContactStatusUpdate: Codable {
+    let contactId: String?
+    let address: String
+    let status: String
+    let notes: String?
+    let salesPersonName: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case address, status, notes
+        case contactId = "contact_id"
+        case salesPersonName = "salesperson_name"
+    }
+}
+
+struct ContactStatusResponse: Codable {
+    let success: Bool
+    let message: String
+    let contactId: String?
+    let newStatus: String?
+    let notesAdded: Bool
+    let timestamp: String
+    
+    enum CodingKeys: String, CodingKey {
+        case success, message, timestamp
+        case contactId = "contact_id"
+        case newStatus = "new_status"
+        case notesAdded = "notes_added"
+    }
+}
+
 struct EmailRecipient: Codable, Identifiable {
     let id: Int
     let email: String
@@ -279,8 +414,8 @@ class BigBeautifulAPIClient: ObservableObject {
     }
 
     private func updateBaseURL() {
-        // Use HTTPS for Replit, HTTP for local servers
-        let urlProtocol = serverHost.contains("repl") ? "https" : "http"
+        // Use HTTPS for cloud servers (Replit and Render), HTTP for local servers
+        let urlProtocol = (serverHost.contains("repl") || serverHost.contains("onrender")) ? "https" : "http"
         baseURL = "\(urlProtocol)://\(serverHost):\(serverPort)/api"
     }
 
@@ -305,8 +440,8 @@ class BigBeautifulAPIClient: ObservableObject {
             do {
                 print("🔄 Trying server \(index + 1)/\(serverConfigurations.count): \(config.name) (\(config.host):\(config.port))")
 
-                // Use HTTPS for Replit, HTTP for local servers
-                let urlProtocol = config.host.contains("repl") ? "https" : "http"
+                // Use HTTPS for cloud servers (Replit and Render), HTTP for local servers
+                let urlProtocol = (config.host.contains("repl") || config.host.contains("onrender")) ? "https" : "http"
                 let testURL = "\(urlProtocol)://\(config.host):\(config.port)/api/health"
                 guard let url = URL(string: testURL) else { continue }
 
@@ -357,8 +492,8 @@ class BigBeautifulAPIClient: ObservableObject {
 
     private func testServer(_ config: ServerConfig) async -> ServerTestResult {
         do {
-            // Use HTTPS for Replit, HTTP for local servers
-            let urlProtocol = config.host.contains("repl") ? "https" : "http"
+            // Use HTTPS for cloud servers (Replit and Render), HTTP for local servers
+            let urlProtocol = (config.host.contains("repl") || config.host.contains("onrender")) ? "https" : "http"
             let testURL = "\(urlProtocol)://\(config.host):\(config.port)/api/health"
             guard let url = URL(string: testURL) else {
                 return ServerTestResult(config: config, isAvailable: false, error: "Invalid URL")
@@ -498,6 +633,28 @@ class BigBeautifulAPIClient: ObservableObject {
 
     func getIncidents() async throws -> IncidentsResponse {
         return try await makeRequest(endpoint: "/incidents", method: "GET")
+    }
+
+    func getRedfinLeads() async throws -> RedfinLeadsResponse {
+        return try await makeRequest(endpoint: "/redfin-leads", method: "GET")
+    }
+    
+    func getIncidentContext(for address: String) async throws -> IncidentContextResponse {
+        let encodedAddress = address.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? address
+        return try await makeRequest(endpoint: "/incident-context/\(encodedAddress)", method: "GET")
+    }
+    
+    func getRecentIncidents(radius: Double = 5.0, latitude: Double? = nil, longitude: Double? = nil) async throws -> RecentIncidentsResponse {
+        var endpoint = "/recent-incidents?radius=\(radius)"
+        if let lat = latitude, let lng = longitude {
+            endpoint += "&lat=\(lat)&lng=\(lng)"
+        }
+        return try await makeRequest(endpoint: endpoint, method: "GET")
+    }
+    
+    func updateContactStatus(_ request: ContactStatusUpdate) async throws -> ContactStatusResponse {
+        let body = try JSONEncoder().encode(request)
+        return try await makeRequest(endpoint: "/update-contact-status", method: "POST", body: body)
     }
 
     // MARK: - Territory Management Methods

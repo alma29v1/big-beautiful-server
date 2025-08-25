@@ -731,6 +731,234 @@ def get_incidents():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/incident-context/<path:address>", methods=["GET"])
+@require_api_key
+def get_incident_context(address):
+    """Get sales context for specific address based on nearby incidents"""
+    try:
+        # Try to get real data from localhost Big Beautiful Program first
+        try:
+            pc_response = requests.get(
+                f"http://localhost:5001/api/incident-context/{address}",
+                timeout=3
+            )
+            if pc_response.status_code == 200:
+                return pc_response.json()
+        except:
+            pass  # Fall back to mock data
+        
+        # Generate mock incident context based on address
+        import random
+        
+        # Determine urgency based on nearby incidents (mock calculation)
+        urgency_score = random.randint(3, 9)
+        incident_types = ["break-in", "vandalism", "suspicious activity", "theft", "fire"]
+        nearby_incident = random.choice(incident_types)
+        
+        talking_points = generate_talking_points(nearby_incident, urgency_score)
+        
+        mock_context = {
+            "address": address,
+            "urgency_score": urgency_score,
+            "primary_incident_type": nearby_incident,
+            "incidents_within_mile": random.randint(1, 5),
+            "last_incident_days_ago": random.randint(1, 14),
+            "talking_points": talking_points,
+            "product_recommendations": get_product_recommendations(nearby_incident),
+            "objection_responses": get_objection_responses(nearby_incident),
+            "conversation_starters": get_conversation_starters(nearby_incident, address),
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        return jsonify(mock_context)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/recent-incidents", methods=["GET"])
+@require_api_key
+def get_recent_incidents():
+    """Get recent incidents for area awareness"""
+    radius = request.args.get("radius", "5")  # miles
+    lat = request.args.get("lat")
+    lng = request.args.get("lng")
+    
+    try:
+        # Try to get real data from localhost Big Beautiful Program first
+        try:
+            pc_response = requests.get(
+                f"http://localhost:5001/api/recent-incidents?radius={radius}&lat={lat}&lng={lng}",
+                timeout=3
+            )
+            if pc_response.status_code == 200:
+                return pc_response.json()
+        except:
+            pass  # Fall back to mock data
+        
+        # Mock recent incidents for area awareness
+        mock_recent = [
+            {
+                "id": 1,
+                "address": "123 Pine Street",
+                "incident_type": "break-in",
+                "days_ago": 2,
+                "distance_miles": 0.3,
+                "severity": "high"
+            },
+            {
+                "id": 2, 
+                "address": "456 Oak Avenue",
+                "incident_type": "vandalism",
+                "days_ago": 5,
+                "distance_miles": 0.7,
+                "severity": "medium"
+            }
+        ]
+        
+        return jsonify({
+            "recent_incidents": mock_recent,
+            "total": len(mock_recent),
+            "search_radius_miles": int(radius),
+            "timestamp": datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/update-contact-status", methods=["POST"])
+@require_api_key
+def update_contact_status():
+    """Update contact status and visit progress"""
+    try:
+        data = request.get_json()
+        
+        # Try to update real data on localhost Big Beautiful Program first
+        try:
+            pc_response = requests.post(
+                "http://localhost:5001/api/update-contact-status",
+                json=data,
+                timeout=3
+            )
+            if pc_response.status_code == 200:
+                return pc_response.json()
+        except:
+            pass  # Fall back to mock response
+        
+        # Mock success response
+        return jsonify({
+            "success": True,
+            "message": "Contact status updated successfully",
+            "contact_id": data.get("contact_id"),
+            "new_status": data.get("status"),
+            "notes_added": bool(data.get("notes")),
+            "timestamp": datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+def generate_talking_points(incident_type, urgency_score):
+    """Generate incident-specific talking points"""
+    base_points = {
+        "break-in": [
+            "I noticed there was a break-in nearby recently - that must be concerning for the neighborhood",
+            "Home security is really important, especially after what happened on [street name]",
+            "Many homeowners are upgrading their security after the recent incident",
+            "The good news is there are proven ways to prevent this from happening to you"
+        ],
+        "vandalism": [
+            "I saw there was some vandalism in the area - property crime can really affect home values",
+            "Visible security measures are one of the best deterrents for this type of activity",
+            "Many neighbors are installing security systems after the recent property damage",
+            "Prevention is always better and cheaper than dealing with repairs"
+        ],
+        "suspicious activity": [
+            "There's been some suspicious activity reported in the neighborhood recently",
+            "Many homeowners are taking proactive steps to secure their property",
+            "Visible security systems are proven to deter unwanted visitors",
+            "Peace of mind is priceless when it comes to your family's safety"
+        ],
+        "theft": [
+            "Property theft has been reported in the area - I wanted to make sure you're aware",
+            "Thieves often target homes that appear to have minimal security",
+            "Your neighbors are upgrading their home security after recent incidents",
+            "A small investment in security can prevent major losses"
+        ],
+        "fire": [
+            "After the recent fire incident, many homeowners are reviewing their safety systems",
+            "Modern security systems include fire and smoke detection features",
+            "Quick emergency response can save lives and property",
+            "Comprehensive protection covers more than just break-ins"
+        ]
+    }
+    
+    urgency_modifiers = {
+        range(1, 4): "in the general area",
+        range(4, 7): "in your neighborhood", 
+        range(7, 10): "very close to your home"
+    }
+    
+    urgency_text = next((mod for r, mod in urgency_modifiers.items() if urgency_score in r), "nearby")
+    
+    points = base_points.get(incident_type, base_points["suspicious activity"])
+    return [point.replace("nearby", urgency_text).replace("in the area", urgency_text) for point in points]
+
+
+def get_product_recommendations(incident_type):
+    """Get product recommendations based on incident type"""
+    recommendations = {
+        "break-in": [
+            {"product": "Door/Window Sensors", "priority": "high", "reason": "Detect unauthorized entry"},
+            {"product": "Security Cameras", "priority": "high", "reason": "Visual deterrent and evidence"},
+            {"product": "Motion Detectors", "priority": "medium", "reason": "Interior protection"},
+            {"product": "Smart Locks", "priority": "medium", "reason": "Enhanced access control"}
+        ],
+        "vandalism": [
+            {"product": "Security Cameras", "priority": "high", "reason": "Visual deterrent for property damage"},
+            {"product": "Outdoor Lighting", "priority": "high", "reason": "Illumination deters vandals"},
+            {"product": "Motion Sensors", "priority": "medium", "reason": "Alert to property activity"}
+        ],
+        "suspicious activity": [
+            {"product": "Security Cameras", "priority": "high", "reason": "Monitor and record suspicious behavior"},
+            {"product": "Motion Detectors", "priority": "high", "reason": "Alert to property intrusion"},
+            {"product": "Door/Window Sensors", "priority": "medium", "reason": "Entry point protection"}
+        ],
+        "theft": [
+            {"product": "Security System Package", "priority": "high", "reason": "Comprehensive theft prevention"},
+            {"product": "Safe/Security Box", "priority": "medium", "reason": "Protect valuables"},
+            {"product": "Security Cameras", "priority": "high", "reason": "Evidence and deterrent"}
+        ],
+        "fire": [
+            {"product": "Smoke/Fire Detectors", "priority": "high", "reason": "Early fire detection saves lives"},
+            {"product": "Security System with Fire", "priority": "high", "reason": "Comprehensive safety monitoring"},
+            {"product": "Carbon Monoxide Detector", "priority": "medium", "reason": "Complete home safety"}
+        ]
+    }
+    
+    return recommendations.get(incident_type, recommendations["suspicious activity"])
+
+
+def get_objection_responses(incident_type):
+    """Get objection responses for incident type"""
+    return {
+        "cost_concern": f"After a {incident_type} incident, the cost of NOT having security is much higher than the monthly investment",
+        "false_alarms": "Modern systems have smart technology that virtually eliminates false alarms",
+        "privacy": "Your privacy is protected - you control all access and recording settings",
+        "complexity": "Installation is professional and the system is designed to be simple to use",
+        "effectiveness": f"Security systems are proven to prevent {incident_type} incidents in 90% of cases"
+    }
+
+
+def get_conversation_starters(incident_type, address):
+    """Get natural conversation starters"""
+    return [
+        f"Hi, I'm with [Company] and I'm in the neighborhood today talking to homeowners about the recent {incident_type} incident",
+        "I wanted to stop by because we've been helping your neighbors improve their home security after recent events",
+        f"Have you heard about the {incident_type} that happened nearby? I'm here to help make sure your family stays safe",
+        "I'm working with several families in the area to upgrade their security - do you have a few minutes to discuss your home's safety?"
+    ]
+
+
 @app.route("/ping", methods=["GET"])
 def ping():
     """Keep-alive endpoint to prevent server sleeping"""

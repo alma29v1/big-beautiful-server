@@ -11,7 +11,7 @@ import time
 import requests
 
 # Server configuration
-SERVER_URL = "https://big-beautiful-server.onrender.com:8080"
+SERVER_URL = "https://big-beautiful-server.onrender.com"
 PING_INTERVAL = 300  # 5 minutes
 API_KEY = "MLlhXK3cyJ8_Hnr_kKCP_-uRgv9RuZaKtZyyFl6ZCgw"
 

@@ -1,259 +1,23 @@
 import Foundation
 import Combine
+import CoreLocation
 
 class DataManager: ObservableObject {
     @Published var houses: [House] = []
-    @Published var incidents: [Incident] = []
-    @Published var salespeople: [SalesPerson] = []
     @Published var routes: [Route] = []
-    @Published var visits: [Visit] = []
-
-    // Big Beautiful Program Integration
-    @Published var bigBeautifulAPIClient = BigBeautifulAPIClient()
+    @Published var incidents: [Incident] = []
     @Published var contacts: [Contact] = []
     @Published var analytics: AnalyticsResponse?
     @Published var isBigBeautifulConnected = false
-
-    // Email Campaign Data
-    @Published var emailCampaigns: [EmailCampaign] = []
-    @Published var emailStats: EmailStats?
-    @Published var selectedCampaignRecipients: [EmailRecipient] = []
     @Published var lastSyncTimestamp: Date?
-    @Published var regionAssignments: [String: UUID] = [:] // city -> salespersonId
+    @Published var regionAssignments: [String: UUID] = [:]
 
-    private let userDefaults = UserDefaults.standard
+    let bigBeautifulAPIClient = BigBeautifulAPIClient()
+    private var salesPeople: [SalesPerson] = []
 
     init() {
-        loadSampleData()
         loadRegionAssignments()
-
-        // Connect to Big Beautiful Program on startup
-        Task {
-            await connectToBigBeautifulProgram()
-        }
-    }
-
-    // MARK: - Sample Data
-
-    private func loadSampleData() {
-        // Sample salespeople
-        salespeople = [
-            SalesPerson(name: "Mike Sales", email: "mike@company.com", phone: "910-555-0201"),
-            SalesPerson(name: "Sarah Closer", email: "sarah@company.com", phone: "910-555-0202"),
-            SalesPerson(name: "Tom Door", email: "tom@company.com", phone: "910-555-0203")
-        ]
-
-        // Load minimal sample data - most data will come from Big Beautiful Program
-        loadMinimalSampleData()
-    }
-
-    private func loadMinimalSampleData() {
-        // Only load essential sample data for demonstration
-        // Real data will come from Big Beautiful Program
-
-        // Sample houses (will be replaced by contacts from Big Beautiful Program)
-        houses = [
-            House(address: "123 Main St", city: "Wilmington", state: "NC", zipCode: "28401",
-                  latitude: 34.2257, longitude: -77.9447, soldDate: "2024-01-15", price: 250000,
-                  contactName: "John Smith", contactEmail: "john@email.com", contactPhone: "910-555-0101",
-                  fiberAvailable: true, adtDetected: false),
-
-            House(address: "456 Oak Ave", city: "Leland", state: "NC", zipCode: "28451",
-                  latitude: 34.2563, longitude: -78.0447, soldDate: "2024-01-16", price: 275000,
-                  contactName: "Jane Doe", contactEmail: "jane@email.com", contactPhone: "910-555-0102",
-                  fiberAvailable: false, adtDetected: true),
-
-            House(address: "789 Pine Rd", city: "Southport", state: "NC", zipCode: "28461",
-                  latitude: 33.9207, longitude: -78.0189, soldDate: "2024-01-17", price: 300000,
-                  contactName: "Bob Johnson", contactEmail: "bob@email.com", contactPhone: "910-555-0103",
-                  fiberAvailable: true, adtDetected: false)
-        ]
-
-        // Sample incidents
-        incidents = [
-            Incident(address: "123 Main St", incidentType: .fire, description: "House fire in neighborhood",
-                     latitude: 34.2257, longitude: -77.9447, assignedSalespersonId: salespeople[0].id),
-
-            Incident(address: "456 Oak Ave", incidentType: .breakIn, description: "Recent break-in reported",
-                     latitude: 34.2563, longitude: -78.0447, assignedSalespersonId: salespeople[1].id),
-
-            Incident(address: "789 Pine Rd", incidentType: .flood, description: "Flood damage reported",
-                     latitude: 33.9207, longitude: -78.0189, assignedSalespersonId: salespeople[2].id)
-        ]
-
-        // Sample routes
-        let wilmingtonHouses = houses.filter { $0.city == "Wilmington" }.map { $0.id }
-        let lelandHouses = houses.filter { $0.city == "Leland" }.map { $0.id }
-
-        routes = [
-            Route(name: "Wilmington Route 1", salespersonId: salespeople[0].id, houseIds: Array(wilmingtonHouses.prefix(2))),
-            Route(name: "Leland Route 1", salespersonId: salespeople[1].id, houseIds: Array(lelandHouses.prefix(2)))
-        ]
-
-        // Sample visits
-        visits = [
-            Visit(houseId: houses[0].id, salespersonId: salespeople[0].id, status: .contacted, notes: "Spoke with homeowner about security options"),
-            Visit(houseId: houses[1].id, salespersonId: salespeople[1].id, status: .interested, notes: "Interested in ADT system", followUpDate: Date().addingTimeInterval(7*24*60*60))
-        ]
-    }
-
-    // MARK: - House Operations
-
-    func updateHouse(_ house: House) {
-        if let index = houses.firstIndex(where: { $0.id == house.id }) {
-            houses[index] = house
-            saveData()
-        }
-    }
-
-    func addHouse(_ house: House) {
-        houses.append(house)
-        saveData()
-    }
-
-    func deleteHouse(_ house: House) {
-        houses.removeAll { $0.id == house.id }
-        saveData()
-    }
-
-    // MARK: - Incident Operations
-
-    func updateIncident(_ incident: Incident) {
-        if let index = incidents.firstIndex(where: { $0.id == incident.id }) {
-            incidents[index] = incident
-            saveData()
-        }
-    }
-
-    func addIncident(_ incident: Incident) {
-        incidents.append(incident)
-        saveData()
-    }
-
-    func deleteIncident(_ incident: Incident) {
-        incidents.removeAll { $0.id == incident.id }
-        saveData()
-    }
-
-    // MARK: - Route Operations
-
-    func updateRoute(_ route: Route) {
-        if let index = routes.firstIndex(where: { $0.id == route.id }) {
-            routes[index] = route
-            saveData()
-        }
-    }
-
-    func addRoute(_ route: Route) {
-        routes.append(route)
-        saveData()
-    }
-
-    func deleteRoute(_ route: Route) {
-        routes.removeAll { $0.id == route.id }
-        saveData()
-    }
-
-    // MARK: - Visit Operations
-
-    func updateVisit(_ visit: Visit) {
-        if let index = visits.firstIndex(where: { $0.id == visit.id }) {
-            visits[index] = visit
-            saveData()
-        }
-    }
-
-    func addVisit(_ visit: Visit) {
-        visits.append(visit)
-        saveData()
-    }
-
-    func deleteVisit(_ visit: Visit) {
-        visits.removeAll { $0.id == visit.id }
-        saveData()
-    }
-
-    func visitsForHouse(_ houseId: UUID) -> [Visit] {
-        return visits.filter { $0.houseId == houseId }
-    }
-
-    // MARK: - Computed Properties
-
-    var totalHouses: Int {
-        houses.count
-    }
-
-    var newHouses: Int {
-        houses.filter { $0.status == .new }.count
-    }
-
-    var activeIncidentsCount: Int {
-        incidents.filter { $0.status == .active }.count
-    }
-
-    var totalRoutes: Int {
-        routes.count
-    }
-
-    func activeIncidents() -> [Incident] {
-        incidents.filter { $0.status == .active }
-    }
-
-    func housesByStatus(_ status: HouseStatus) -> [House] {
-        houses.filter { $0.status == status }
-    }
-
-    func housesByCity(_ city: String) -> [House] {
-        houses.filter { $0.city == city }
-    }
-
-    func routesForSalesperson(_ salespersonId: UUID) -> [Route] {
-        routes.filter { $0.salespersonId == salespersonId }
-    }
-
-    // MARK: - Data Persistence
-
-    private func saveData() {
-        // In a real app, you'd save to Core Data or a database
-        // For now, we'll use UserDefaults for demonstration
-        if let housesData = try? JSONEncoder().encode(houses) {
-            userDefaults.set(housesData, forKey: "houses")
-        }
-
-        if let incidentsData = try? JSONEncoder().encode(incidents) {
-            userDefaults.set(incidentsData, forKey: "incidents")
-        }
-
-        if let visitsData = try? JSONEncoder().encode(visits) {
-            userDefaults.set(visitsData, forKey: "visits")
-        }
-
-        if let routesData = try? JSONEncoder().encode(routes) {
-            userDefaults.set(routesData, forKey: "routes")
-        }
-    }
-
-    private func loadData() {
-        // Load from UserDefaults
-        if let housesData = userDefaults.data(forKey: "houses"),
-           let decodedHouses = try? JSONDecoder().decode([House].self, from: housesData) {
-            houses = decodedHouses
-        }
-
-        if let incidentsData = userDefaults.data(forKey: "incidents"),
-           let decodedIncidents = try? JSONDecoder().decode([Incident].self, from: incidentsData) {
-            incidents = decodedIncidents
-        }
-
-        if let visitsData = userDefaults.data(forKey: "visits"),
-           let decodedVisits = try? JSONDecoder().decode([Visit].self, from: visitsData) {
-            visits = decodedVisits
-        }
-
-        if let routesData = userDefaults.data(forKey: "routes"),
-           let decodedRoutes = try? JSONDecoder().decode([Route].self, from: routesData) {
-            routes = decodedRoutes
-        }
+        generateSampleData()
     }
 
     // MARK: - Big Beautiful Program Integration
@@ -269,8 +33,9 @@ class DataManager: ObservableObject {
                 self.isBigBeautifulConnected = true
             }
 
-            // Load data from the connected server
+            // Load real data from the connected server
             await loadContactsFromBigBeautiful()
+            await loadRedfinLeadsFromBigBeautiful()
             await loadAnalyticsFromBigBeautiful()
             await loadRollingSalesFromBigBeautiful()
             await loadIncidentsFromBigBeautiful()
@@ -300,6 +65,18 @@ class DataManager: ObservableObject {
         }
     }
 
+    func loadRedfinLeadsFromBigBeautiful() async {
+        do {
+            let response = try await bigBeautifulAPIClient.getRedfinLeads()
+            await MainActor.run {
+                self.convertRedfinLeadsToHouses(response.leads)
+            }
+            print("✅ Loaded \(response.leads.count) Redfin leads from Big Beautiful Program")
+        } catch {
+            print("❌ Failed to load Redfin leads: \(error)")
+        }
+    }
+
     func loadAnalyticsFromBigBeautiful() async {
         do {
             let analytics = try await bigBeautifulAPIClient.getAnalytics()
@@ -312,109 +89,12 @@ class DataManager: ObservableObject {
         }
     }
 
-    func checkATTFiberForAddress(_ address: String) async -> FiberResponse? {
-        do {
-            let response = try await bigBeautifulAPIClient.checkATTFiber(address: address)
-            print("✅ AT&T Fiber check for \(address): \(response.fiberAvailable)")
-            return response
-        } catch {
-            print("❌ Failed to check AT&T Fiber: \(error)")
-            return nil
-        }
-    }
-
-    func geocodeAddress(_ address: String) async -> GeocodeResponse? {
-        do {
-            let response = try await bigBeautifulAPIClient.geocodeAddress(address: address)
-            print("✅ Geocoded address: \(address) -> \(response.latitude), \(response.longitude)")
-            return response
-        } catch {
-            print("❌ Failed to geocode address: \(error)")
-            return nil
-        }
-    }
-
-    func createContactInBigBeautiful(address: String, city: String, state: String, zipCode: String,
-                                   ownerName: String, ownerEmail: String, ownerPhone: String, fiberAvailable: Bool) async -> Contact? {
-        do {
-            let contact = try await bigBeautifulAPIClient.createContact(
-                address: address, city: city, state: state, zipCode: zipCode,
-                ownerName: ownerName, ownerEmail: ownerEmail, ownerPhone: ownerPhone, fiberAvailable: fiberAvailable
-            )
-            await MainActor.run {
-                self.contacts.append(contact)
-            }
-            print("✅ Created contact in Big Beautiful Program: \(contact.ownerName)")
-            return contact
-        } catch {
-            print("❌ Failed to create contact: \(error)")
-            return nil
-        }
-    }
-
-    private func convertContactsToHouses() {
-        // Convert Big Beautiful Program contacts to houses for the mobile app
-        let convertedHouses = contacts.compactMap { contact -> House? in
-            // Use geocoding to get coordinates if needed, for now use default coordinates
-            let defaultLatitude = 34.2257 + Double.random(in: -0.1...0.1)
-            let defaultLongitude = -77.9447 + Double.random(in: -0.1...0.1)
-
-            return House(
-                address: contact.address,
-                city: contact.city,
-                state: contact.state,
-                zipCode: contact.zipCode,
-                latitude: defaultLatitude,
-                longitude: defaultLongitude,
-                soldDate: contact.createdDate,
-                price: Double(Int.random(in: 200000...400000)), // Placeholder price
-                contactName: contact.ownerName,
-                contactEmail: contact.ownerEmail,
-                contactPhone: contact.ownerPhone,
-                fiberAvailable: contact.fiberAvailable,
-                adtDetected: false, // Placeholder
-                adtSignDetected: Bool.random() // Placeholder for ADT sign detection
-            )
-        }
-
-        // Replace sample houses with real data from Big Beautiful Program
-        if !convertedHouses.isEmpty {
-            houses = convertedHouses
-            print("✅ Converted \(convertedHouses.count) contacts to houses")
-        }
-    }
-
-    // MARK: - Additional Big Beautiful Methods
-
     func loadRollingSalesFromBigBeautiful() async {
         do {
-            let sales = try await bigBeautifulAPIClient.getRollingSales()
-            print("✅ Loaded rolling sales data from Big Beautiful Program: \(sales)")
+            let rollingSales = try await bigBeautifulAPIClient.getRollingSales()
+            print("✅ Loaded rolling sales data: \(rollingSales)")
         } catch {
             print("❌ Failed to load rolling sales: \(error)")
-        }
-    }
-
-    func syncWithBigBeautiful() async {
-        do {
-            let result = try await bigBeautifulAPIClient.syncData()
-            print("✅ Synced with Big Beautiful Program: \(result)")
-            await MainActor.run {
-                self.lastSyncTimestamp = Date()
-            }
-        } catch {
-            print("❌ Failed to sync with Big Beautiful Program: \(error)")
-        }
-    }
-
-    func getTerritoriesFromBigBeautiful() async -> [String: String]? {
-        do {
-            let territories = try await bigBeautifulAPIClient.getTerritories()
-            print("✅ Loaded territories from Big Beautiful Program")
-            return territories
-        } catch {
-            print("❌ Failed to load territories: \(error)")
-            return nil
         }
     }
 
@@ -422,15 +102,19 @@ class DataManager: ObservableObject {
         do {
             let response = try await bigBeautifulAPIClient.getIncidents()
             await MainActor.run {
-                // Convert server incidents to app incidents
                 self.incidents = response.incidents.map { serverIncident in
                     Incident(
+                        id: UUID(),
                         address: serverIncident.address,
-                        incidentType: mapIncidentType(serverIncident.incident_type),
+                        type: mapIncidentType(serverIncident.incident_type),
                         description: serverIncident.description,
+                        date: Date(),
                         latitude: serverIncident.latitude,
                         longitude: serverIncident.longitude,
-                        assignedSalespersonId: salespeople.first?.id ?? UUID() // Default assignment
+                        isActive: serverIncident.status.lowercased() == "active",
+                        assignedSalesperson: serverIncident.assigned_salesperson,
+                        priority: serverIncident.priority,
+                        createdDate: serverIncident.created_date
                     )
                 }
             }
@@ -442,143 +126,339 @@ class DataManager: ObservableObject {
 
     private func mapIncidentType(_ serverType: String) -> IncidentType {
         switch serverType.lowercased() {
-        case "fire": return .fire
-        case "break_in": return .breakIn
-        case "storm": return .storm
-        case "flood": return .flood
-        case "theft": return .theft
-        default: return .theft // Default fallback
+        case "break-in", "burglary":
+            return .breakIn
+        case "vandalism":
+            return .vandalism
+        case "suspicious activity", "suspicious":
+            return .suspiciousActivity
+        case "theft":
+            return .theft
+        case "noise complaint", "noise":
+            return .noiseComplaint
+        default:
+            return .other
         }
     }
 
+    func syncWithBigBeautiful() async {
+        await connectToBigBeautifulProgram()
+    }
+
     func refreshBigBeautifulData() async {
-        // Refresh all data from Big Beautiful Program
+        guard isBigBeautifulConnected else {
+            await connectToBigBeautifulProgram()
+            return
+        }
+
         await loadContactsFromBigBeautiful()
+        await loadRedfinLeadsFromBigBeautiful()
         await loadAnalyticsFromBigBeautiful()
-        await loadRollingSalesFromBigBeautiful()
         await loadIncidentsFromBigBeautiful()
-        await syncWithBigBeautiful()
-        print("Big Beautiful Program data refreshed")
+
+        await MainActor.run {
+            self.lastSyncTimestamp = Date()
+        }
     }
 
-    // MARK: - Region Assignment Methods
+    func checkATTFiberForAddress(_ address: String) async -> FiberResponse? {
+        do {
+            return try await bigBeautifulAPIClient.checkATTFiber(address: address)
+        } catch {
+            print("Failed to check ATT Fiber for \(address): \(error)")
+            return nil
+        }
+    }
 
-    func assignRegion(_ city: String, to salespersonId: UUID) {
-        regionAssignments[city] = salespersonId
+    // MARK: - Data Conversion
+
+    private func convertContactsToHouses() {
+        let newHouses = contacts.map { contact in
+            House(
+                id: UUID(),
+                address: contact.address,
+                city: contact.city,
+                state: contact.state,
+                zipCode: contact.zipCode,
+                latitude: 0.0, // Would need geocoding
+                longitude: 0.0,
+                status: .available,
+                ownerName: contact.ownerName,
+                ownerEmail: contact.ownerEmail,
+                ownerPhone: contact.ownerPhone,
+                soldDate: contact.createdDate,
+                price: nil,
+                squareFootage: nil,
+                bedrooms: nil,
+                bathrooms: nil,
+                adtSignDetected: false,
+                notes: "Imported from \(contact.source)"
+            )
+        }
+
+        // Merge with existing houses, avoiding duplicates
+        for newHouse in newHouses {
+            if !houses.contains(where: { $0.address == newHouse.address }) {
+                houses.append(newHouse)
+            }
+        }
+    }
+
+    private func convertRedfinLeadsToHouses(_ leads: [RedfinLead]) {
+        let newHouses = leads.map { lead in
+            House(
+                id: UUID(),
+                address: lead.address,
+                city: lead.city,
+                state: lead.state,
+                zipCode: lead.zipCode,
+                latitude: lead.latitude,
+                longitude: lead.longitude,
+                status: .sold,
+                ownerName: lead.ownerName,
+                ownerEmail: lead.ownerEmail,
+                ownerPhone: lead.ownerPhone,
+                soldDate: lead.soldDate,
+                price: lead.salePrice,
+                squareFootage: lead.squareFeet,
+                bedrooms: lead.bedrooms,
+                bathrooms: lead.bathrooms,
+                adtSignDetected: false,
+                notes: "Redfin lead - \(lead.propertyType)"
+            )
+        }
+
+        // Replace sample data with real data
+        houses = newHouses
+    }
+
+    // MARK: - Region Assignment
+
+    func assignRegion(_ region: String, to salesperson: UUID) {
+        regionAssignments[region] = salesperson
         saveRegionAssignments()
     }
 
-    func unassignRegion(_ city: String) {
-        regionAssignments.removeValue(forKey: city)
+    func unassignRegion(_ region: String) {
+        regionAssignments.removeValue(forKey: region)
         saveRegionAssignments()
     }
 
-    func getSalespersonForRegion(_ city: String) -> SalesPerson? {
-        guard let salespersonId = regionAssignments[city] else { return nil }
-        return salespeople.first { $0.id == salespersonId }
+    func getSalespersonForRegion(_ region: String) -> SalesPerson? {
+        guard let id = regionAssignments[region] else { return nil }
+        return salesPeople.first { $0.id == id }
     }
 
-    func getHousesForSalesperson(_ salespersonId: UUID) -> [House] {
-        let assignedCities = regionAssignments.filter { $0.value == salespersonId }.keys
-        return houses.filter { assignedCities.contains($0.city) }
+    func getHousesForSalesperson(_ salesperson: SalesPerson) -> [House] {
+        let assignedRegions = getAssignedCities(for: salesperson.id)
+        return houses.filter { house in
+            assignedRegions.contains(house.city)
+        }
     }
 
     func getUnassignedHouses() -> [House] {
         let assignedCities = Set(regionAssignments.keys)
-        return houses.filter { !assignedCities.contains($0.city) }
+        return houses.filter { house in
+            !assignedCities.contains(house.city)
+        }
     }
 
     func getAvailableCities() -> [String] {
-        return Array(Set(houses.map { $0.city })).sorted()
+        let uniqueCities = Set(houses.map { $0.city })
+        return Array(uniqueCities).sorted()
     }
 
-    func getAssignedCities() -> [String] {
-        return Array(regionAssignments.keys).sorted()
+    func getAssignedCities(for salespersonId: UUID) -> [String] {
+        return regionAssignments.compactMap { (city, id) in
+            id == salespersonId ? city : nil
+        }
     }
 
     private func saveRegionAssignments() {
         let assignments = Dictionary(uniqueKeysWithValues: regionAssignments.map { ($0.key, $0.value.uuidString) })
-        userDefaults.set(assignments, forKey: "regionAssignments")
+        UserDefaults.standard.set(assignments, forKey: "regionAssignments")
     }
 
     private func loadRegionAssignments() {
-        guard let assignments = userDefaults.dictionary(forKey: "regionAssignments") as? [String: String] else { return }
-        regionAssignments = assignments.compactMapValues { UUID(uuidString: $0) }
+        if let savedAssignments = UserDefaults.standard.dictionary(forKey: "regionAssignments") as? [String: String] {
+            regionAssignments = Dictionary(uniqueKeysWithValues: savedAssignments.compactMap { (key, value) in
+                guard let uuid = UUID(uuidString: value) else { return nil }
+                return (key, uuid)
+            })
+        }
     }
 
-    func importFromBigBeautifulProgram() {
-        // This would integrate with your Big Beautiful Program
-        // For now, we'll simulate importing new data
+    // MARK: - Sample Data Generation
 
-        let newHouse = House(
-            address: "999 New House St",
-            city: "Wilmington",
-            state: "NC",
-            zipCode: "28401",
-            latitude: 34.2157,
-            longitude: -77.9347,
-            soldDate: "2024-01-20",
-            price: 280000,
-            contactName: "New Customer",
-            contactEmail: "new@email.com",
-            contactPhone: "910-555-9999",
-            fiberAvailable: true,
-            adtDetected: false
-        )
-
-        addHouse(newHouse)
-
-        // Try to sync with Python backend
-        syncWithBackend()
+    private func generateSampleData() {
+        generateSampleSalespeople()
+        generateSampleHouses()
+        generateSampleRoutes()
+        generateSampleIncidents()
     }
 
-    // MARK: - Backend Integration
-
-    private func loadDataFromBackend() {
-        guard let url = URL(string: "http://localhost:5001/api/houses") else { return }
-
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            if let data = data {
-                do {
-                    let housesData = try JSONSerialization.jsonObject(with: data) as? [[String: Any]] ?? []
-
-                    DispatchQueue.main.async {
-                        self.houses = housesData.compactMap { houseDict in
-                            guard let address = houseDict["address"] as? String,
-                                  let city = houseDict["city"] as? String,
-                                  let state = houseDict["state"] as? String,
-                                  let zipCode = houseDict["zip_code"] as? String,
-                                  let latitude = houseDict["latitude"] as? Double,
-                                  let longitude = houseDict["longitude"] as? Double else {
-                                return nil
-                            }
-
-                            return House(
-                                address: address,
-                                city: city,
-                                state: state,
-                                zipCode: zipCode,
-                                latitude: latitude,
-                                longitude: longitude,
-                                soldDate: "2024-01-15",
-                                price: 250000,
-                                contactName: "Backend Contact",
-                                contactEmail: "backend@email.com",
-                                contactPhone: "910-555-0000",
-                                fiberAvailable: true,
-                                adtDetected: false
-                            )
-                        }
-                    }
-                } catch {
-                    print("Error parsing houses data: \(error)")
-                }
-            }
-        }.resume()
+    private func generateSampleSalespeople() {
+        salesPeople = [
+            SalesPerson(id: UUID(), name: "John Smith", email: "john@company.com", phone: "555-0123", territory: "Wilmington"),
+            SalesPerson(id: UUID(), name: "Sarah Johnson", email: "sarah@company.com", phone: "555-0124", territory: "Leland"),
+            SalesPerson(id: UUID(), name: "Mike Davis", email: "mike@company.com", phone: "555-0125", territory: "Southport"),
+            SalesPerson(id: UUID(), name: "Lisa Wilson", email: "lisa@company.com", phone: "555-0126", territory: "Hampstead")
+        ]
     }
 
-    private func syncWithBackend() {
-        // This would sync data with your Python backend
-        print("Syncing with backend...")
+    private func generateSampleHouses() {
+        houses = [
+            House(
+                id: UUID(),
+                address: "123 Ocean View Dr",
+                city: "Wilmington",
+                state: "NC",
+                zipCode: "28401",
+                latitude: 34.2356,
+                longitude: -77.9328,
+                status: .available,
+                ownerName: "Sample Owner 1",
+                ownerEmail: "owner1@example.com",
+                ownerPhone: "910-555-0201",
+                soldDate: "2024-01-20",
+                price: 285000,
+                squareFootage: 1850,
+                bedrooms: 3,
+                bathrooms: 2,
+                adtSignDetected: true,
+                notes: "Sample data - ADT sign visible"
+            ),
+            House(
+                id: UUID(),
+                address: "456 Coastal Blvd",
+                city: "Leland",
+                state: "NC",
+                zipCode: "28451",
+                latitude: 34.2763,
+                longitude: -78.0147,
+                status: .sold,
+                ownerName: "Sample Owner 2",
+                ownerEmail: "owner2@example.com",
+                ownerPhone: "910-555-0202",
+                soldDate: "2024-01-21",
+                price: 320000,
+                squareFootage: 2200,
+                bedrooms: 4,
+                bathrooms: 3,
+                adtSignDetected: false,
+                notes: "Sample data - recently sold"
+            ),
+            House(
+                id: UUID(),
+                address: "789 Harbor Point Way",
+                city: "Southport",
+                state: "NC",
+                zipCode: "28461",
+                latitude: 33.9107,
+                longitude: -78.0089,
+                status: .notInterested,
+                ownerName: "Sample Owner 3",
+                ownerEmail: "owner3@example.com",
+                ownerPhone: "910-555-0203",
+                soldDate: "2024-01-22",
+                price: 380000,
+                squareFootage: 1950,
+                bedrooms: 3,
+                bathrooms: 2,
+                adtSignDetected: false,
+                notes: "Sample data - owner not interested"
+            )
+        ]
+    }
+
+    private func generateSampleRoutes() {
+        routes = [
+            Route(
+                id: UUID(),
+                name: "Morning Route - Wilmington",
+                houses: Array(houses.prefix(2)),
+                date: Date(),
+                isCompleted: false
+            ),
+            Route(
+                id: UUID(),
+                name: "Afternoon Route - Leland",
+                houses: Array(houses.suffix(1)),
+                date: Date(),
+                isCompleted: true
+            )
+        ]
+    }
+
+    private func generateSampleIncidents() {
+        incidents = [
+            Incident(
+                id: UUID(),
+                address: "789 Pine Street",
+                type: .breakIn,
+                description: "Forced entry through back door",
+                date: Date().addingTimeInterval(-86400 * 2),
+                latitude: 34.2454,
+                longitude: -77.9056,
+                isActive: true,
+                assignedSalesperson: "John Smith",
+                priority: "High",
+                createdDate: "2024-01-20T10:30:00Z"
+            ),
+            Incident(
+                id: UUID(),
+                address: "456 Oak Avenue",
+                type: .vandalism,
+                description: "Graffiti on garage door",
+                date: Date().addingTimeInterval(-86400 * 1),
+                latitude: 34.2134,
+                longitude: -77.8856,
+                isActive: true,
+                assignedSalesperson: "Sarah Johnson",
+                priority: "Medium",
+                createdDate: "2024-01-21T14:15:00Z"
+            )
+        ]
+    }
+
+    // MARK: - Data Management Methods
+
+    func addHouse(_ house: House) {
+        houses.append(house)
+    }
+
+    func updateHouse(_ house: House) {
+        if let index = houses.firstIndex(where: { $0.id == house.id }) {
+            houses[index] = house
+        }
+    }
+
+    func deleteHouse(_ house: House) {
+        houses.removeAll { $0.id == house.id }
+    }
+
+    func addRoute(_ route: Route) {
+        routes.append(route)
+    }
+
+    func updateRoute(_ route: Route) {
+        if let index = routes.firstIndex(where: { $0.id == route.id }) {
+            routes[index] = route
+        }
+    }
+
+    func deleteRoute(_ route: Route) {
+        routes.removeAll { $0.id == route.id }
+    }
+
+    func getSalespeople() -> [SalesPerson] {
+        return salesPeople
+    }
+}
+
+extension Date {
+    static func fromISO8601(_ string: String) -> Date? {
+        let formatter = ISO8601DateFormatter()
+        return formatter.date(from: string)
     }
 }
