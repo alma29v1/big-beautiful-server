@@ -202,15 +202,17 @@ def get_contacts():
             pc_response = requests.get("http://localhost:5001/api/contacts", timeout=3)
             if pc_response.status_code == 200:
                 pc_data = pc_response.json()
-                return jsonify({
-                    "contacts": pc_data.get("contacts", []),
-                    "total": pc_data.get("total", 0),
-                    "timestamp": datetime.now().isoformat(),
-                    "source": "big_beautiful_program"
-                })
+                return jsonify(
+                    {
+                        "contacts": pc_data.get("contacts", []),
+                        "total": pc_data.get("total", 0),
+                        "timestamp": datetime.now().isoformat(),
+                        "source": "big_beautiful_program",
+                    }
+                )
         except:
             pass  # Fall back to local database
-        
+
         # Fallback: Get from local database
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -241,7 +243,7 @@ def get_contacts():
                 "contacts": contacts_list,
                 "total": len(contacts_list),
                 "timestamp": datetime.now().isoformat(),
-                "source": "local_database"
+                "source": "local_database",
             }
         )
     except Exception as e:
@@ -561,19 +563,23 @@ def get_redfin_leads():
         # Real integration: Call PC program's API
         # Try to connect to Big Beautiful Program on PC first
         try:
-            pc_response = requests.get("http://localhost:5001/api/rolling-sales", timeout=2)
+            pc_response = requests.get(
+                "http://localhost:5001/api/rolling-sales", timeout=2
+            )
             if pc_response.status_code == 200:
                 pc_data = pc_response.json()
-                return jsonify({
-                    "leads": pc_data.get("leads", []),
-                    "total": len(pc_data.get("leads", [])),
-                    "source": "big_beautiful_program",
-                    "timestamp": datetime.now().isoformat(),
-                    "note": "Real data from Big Beautiful Program"
-                })
+                return jsonify(
+                    {
+                        "leads": pc_data.get("leads", []),
+                        "total": len(pc_data.get("leads", [])),
+                        "source": "big_beautiful_program",
+                        "timestamp": datetime.now().isoformat(),
+                        "note": "Real data from Big Beautiful Program",
+                    }
+                )
         except:
             pass  # Fall back to mock data
-        
+
         # Fallback: Return mock data for demo purposes
         mock_leads = [
             {
@@ -661,15 +667,17 @@ def get_incidents():
             pc_response = requests.get("http://localhost:5001/api/incidents", timeout=3)
             if pc_response.status_code == 200:
                 pc_data = pc_response.json()
-                return jsonify({
-                    "incidents": pc_data.get("incidents", []),
-                    "total": pc_data.get("total", 0),
-                    "timestamp": datetime.now().isoformat(),
-                    "source": "big_beautiful_program"
-                })
+                return jsonify(
+                    {
+                        "incidents": pc_data.get("incidents", []),
+                        "total": pc_data.get("total", 0),
+                        "timestamp": datetime.now().isoformat(),
+                        "source": "big_beautiful_program",
+                    }
+                )
         except:
             pass  # Fall back to mock data
-        
+
         # Fallback: Return mock incidents for demo
         mock_incidents = [
             {
@@ -682,7 +690,7 @@ def get_incidents():
                 "status": "resolved",
                 "created_date": "2024-01-21T15:30:00",
                 "assigned_salesperson": "Mike Sales",
-                "priority": "high"
+                "priority": "high",
             },
             {
                 "id": 2,
@@ -694,7 +702,7 @@ def get_incidents():
                 "status": "active",
                 "created_date": "2024-01-23T09:15:00",
                 "assigned_salesperson": "Sarah Closer",
-                "priority": "high"
+                "priority": "high",
             },
             {
                 "id": 3,
@@ -706,17 +714,19 @@ def get_incidents():
                 "status": "active",
                 "created_date": "2024-01-24T18:45:00",
                 "assigned_salesperson": "Tom Door",
-                "priority": "medium"
-            }
+                "priority": "medium",
+            },
         ]
-        
-        return jsonify({
-            "incidents": mock_incidents,
-            "total": len(mock_incidents),
-            "timestamp": datetime.now().isoformat(),
-            "source": "mock_data",
-            "note": "Mock incidents - will be replaced with real data when Big Beautiful Program is accessible"
-        })
+
+        return jsonify(
+            {
+                "incidents": mock_incidents,
+                "total": len(mock_incidents),
+                "timestamp": datetime.now().isoformat(),
+                "source": "mock_data",
+                "note": "Mock incidents - will be replaced with real data when Big Beautiful Program is accessible",
+            }
+        )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

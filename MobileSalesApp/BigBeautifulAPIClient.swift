@@ -495,7 +495,7 @@ class BigBeautifulAPIClient: ObservableObject {
     func exportRollingSales() async throws -> [String: String] {
         return try await makeRequest(endpoint: "/rolling-sales/export", method: "GET")
     }
-    
+
     func getIncidents() async throws -> IncidentsResponse {
         return try await makeRequest(endpoint: "/incidents", method: "GET")
     }

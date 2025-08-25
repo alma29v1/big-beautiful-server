@@ -439,7 +439,7 @@ class DataManager: ObservableObject {
             print("❌ Failed to load incidents: \(error)")
         }
     }
-    
+
     private func mapIncidentType(_ serverType: String) -> IncidentType {
         switch serverType.lowercased() {
         case "fire": return .fire
