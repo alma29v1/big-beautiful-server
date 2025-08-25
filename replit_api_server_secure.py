@@ -734,31 +734,35 @@ def get_incidents():
 @app.route("/ping", methods=["GET"])
 def ping():
     """Keep-alive endpoint to prevent server sleeping"""
-    return jsonify({
-        "status": "alive", 
-        "timestamp": datetime.now().isoformat(),
-        "uptime": "running"
-    })
+    return jsonify(
+        {
+            "status": "alive",
+            "timestamp": datetime.now().isoformat(),
+            "uptime": "running",
+        }
+    )
 
 
 @app.route("/", methods=["GET"])
 def index():
     """Root endpoint with server info"""
-    return jsonify({
-        "service": "Big Beautiful Program API Server",
-        "status": "running", 
-        "version": "2.0.0",
-        "security": "secure - no hardcoded keys",
-        "endpoints": {
-            "health": "/api/health",
-            "contacts": "/api/contacts",
-            "incidents": "/api/incidents", 
-            "redfin_leads": "/api/redfin-leads",
-            "analytics": "/api/analytics",
-            "ping": "/ping"
-        },
-        "timestamp": datetime.now().isoformat()
-    })
+    return jsonify(
+        {
+            "service": "Big Beautiful Program API Server",
+            "status": "running",
+            "version": "2.0.0",
+            "security": "secure - no hardcoded keys",
+            "endpoints": {
+                "health": "/api/health",
+                "contacts": "/api/contacts",
+                "incidents": "/api/incidents",
+                "redfin_leads": "/api/redfin-leads",
+                "analytics": "/api/analytics",
+                "ping": "/ping",
+            },
+            "timestamp": datetime.now().isoformat(),
+        }
+    )
 
 
 @app.route("/api/batch-contacts", methods=["POST"])
