@@ -371,7 +371,8 @@ class DataManager: ObservableObject {
                 contactEmail: contact.ownerEmail,
                 contactPhone: contact.ownerPhone,
                 fiberAvailable: contact.fiberAvailable,
-                adtDetected: false // Placeholder
+                adtDetected: false, // Placeholder
+                adtSignDetected: Bool.random() // Placeholder for ADT sign detection
             )
         }
 

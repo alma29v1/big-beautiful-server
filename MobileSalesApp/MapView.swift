@@ -93,6 +93,13 @@ struct HouseAnnotationView: View {
                 Image(systemName: "house.fill")
                     .foregroundColor(.white)
                     .font(.caption)
+
+                if house.adtSignDetected {
+                    Image(systemName: "exclamationmark.triangle")
+                        .foregroundColor(.red)
+                        .font(.system(size: 12))
+                        .offset(x: 10, y: -10)
+                }
             }
         }
     }

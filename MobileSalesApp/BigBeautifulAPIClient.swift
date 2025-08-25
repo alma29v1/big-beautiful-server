@@ -217,25 +217,34 @@ enum APIError: Error, LocalizedError {
 // MARK: - Big Beautiful API Client
 
 class BigBeautifulAPIClient: ObservableObject {
-    @Published var baseURL = "http://localhost:5001/api"
+    // Update base URLs per docs
+    private let devBaseURL = "http://localhost:5000/api"
+    private let prodBaseURL = "http://your-server-ip:5001/api"  // Replace with actual from docs
+
+    @Published var baseURL = "http://localhost:5000/api"  // Default to dev
     @Published var serverHost = "localhost"
     @Published var serverPort = "5001"
     @Published var currentServerIndex = 0
     @Published var connectionStatus = "Disconnected"
     // API Key should be set in environment variables or configuration
     // For production, this should be stored securely
-    let apiKey = "YOUR_API_KEY_HERE" // Replace with actual key when deploying
+    let apiKey = "MLlhXK3cyJ8_Hnr_kKCP_-uRgv9RuZaKtZyyFl6ZCgw"
 
     @Published var isLoading = false
     @Published var error: String?
 
     // Redundant server configuration
     private let serverConfigurations = [
-        ServerConfig(name: "Replit Cloud", host: "big-beautiful-server.alma29v1.repl.co", port: "443", priority: 1),
-        ServerConfig(name: "Local Network", host: "192.168.84.130", port: "5001", priority: 2),
-        ServerConfig(name: "Internet Access", host: "65.190.137.27", port: "5001", priority: 3),
-        ServerConfig(name: "Localhost", host: "127.0.0.1", port: "5001", priority: 4)
+        ServerConfig(name: "Render Cloud", host: "big-beautiful-server.onrender.com", port: "443", priority: 1),
+        ServerConfig(name: "Replit Cloud", host: "7a2267f8-a906-4411-876f-ceea687a67a1-00-z79wgepfvad4.kirk.replit.dev", port: "443", priority: 2),
+        ServerConfig(name: "Local Network", host: "192.168.84.130", port: "5001", priority: 3),
+        ServerConfig(name: "Internet Access", host: "65.190.137.27", port: "5001", priority: 4),
+        ServerConfig(name: "Localhost", host: "127.0.0.1", port: "5001", priority: 5)
     ]
+
+    // Add rate limiting retry logic
+    private let maxRetries = 3
+    private let retryDelay: TimeInterval = 5.0  // For 429 too many requests
 
     init() {
         loadServerSettings()
@@ -251,7 +260,7 @@ class BigBeautifulAPIClient: ObservableObject {
 
     private func updateBaseURL() {
         // Use HTTPS for Replit, HTTP for local servers
-        let urlProtocol = serverHost.contains("repl.co") ? "https" : "http"
+        let urlProtocol = serverHost.contains("repl") ? "https" : "http"
         baseURL = "\(urlProtocol)://\(serverHost):\(serverPort)/api"
     }
 
@@ -277,7 +286,7 @@ class BigBeautifulAPIClient: ObservableObject {
                 print("🔄 Trying server \(index + 1)/\(serverConfigurations.count): \(config.name) (\(config.host):\(config.port))")
 
                 // Use HTTPS for Replit, HTTP for local servers
-                let urlProtocol = config.host.contains("repl.co") ? "https" : "http"
+                let urlProtocol = config.host.contains("repl") ? "https" : "http"
                 let testURL = "\(urlProtocol)://\(config.host):\(config.port)/api/health"
                 guard let url = URL(string: testURL) else { continue }
 
@@ -329,7 +338,7 @@ class BigBeautifulAPIClient: ObservableObject {
     private func testServer(_ config: ServerConfig) async -> ServerTestResult {
         do {
             // Use HTTPS for Replit, HTTP for local servers
-            let urlProtocol = config.host.contains("repl.co") ? "https" : "http"
+            let urlProtocol = config.host.contains("repl") ? "https" : "http"
             let testURL = "\(urlProtocol)://\(config.host):\(config.port)/api/health"
             guard let url = URL(string: testURL) else {
                 return ServerTestResult(config: config, isAvailable: false, error: "Invalid URL")
@@ -355,7 +364,7 @@ class BigBeautifulAPIClient: ObservableObject {
         }
     }
 
-    func makeRequest<T: Codable>(endpoint: String, method: String, body: Data? = nil) async throws -> T {
+    func makeRequest<T: Codable>(endpoint: String, method: String, body: Data? = nil, retryCount: Int = 0) async throws -> T {
         guard let url = URL(string: "\(baseURL)\(endpoint)") else {
             throw APIError.invalidURL
         }
@@ -369,21 +378,40 @@ class BigBeautifulAPIClient: ObservableObject {
             request.httpBody = body
         }
 
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.invalidResponse
-        }
-
-        guard httpResponse.statusCode == 200 || httpResponse.statusCode == 201 else {
-            throw APIError.serverError(httpResponse.statusCode)
-        }
-
         do {
-            return try JSONDecoder().decode(T.self, from: data)
+            let (data, response) = try await URLSession.shared.data(for: request)
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw APIError.invalidResponse
+            }
+
+            // Handle documented error codes
+            switch httpResponse.statusCode {
+            case 200, 201:
+                break
+            case 401:
+                throw APIError.serverError(401)  // Unauthorized
+            case 429:
+                if retryCount < maxRetries {
+                    try await Task.sleep(nanoseconds: UInt64(retryDelay * 1_000_000_000))
+                    return try await makeRequest(endpoint: endpoint, method: method, body: body, retryCount: retryCount + 1)
+                } else {
+                    throw APIError.serverError(429)  // Rate limit exceeded
+                }
+            default:
+                throw APIError.serverError(httpResponse.statusCode)
+            }
+
+            // Decode with ISO8601 date handling
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            return try decoder.decode(T.self, from: data)
         } catch {
-            print("Decoding error: \(error)")
-            throw APIError.decodingError
+            if let apiError = error as? APIError, case .serverError(let code) = apiError, code == 429, retryCount < maxRetries {
+                try await Task.sleep(nanoseconds: UInt64(retryDelay * 1_000_000_000))
+                return try await makeRequest(endpoint: endpoint, method: method, body: body, retryCount: retryCount + 1)
+            }
+            throw error
         }
     }
 

@@ -14,48 +14,90 @@ struct IncidentMapView: View {
         ))
     }
 
-                var body: some View {
-        VStack {
-            Text("INCIDENT MAP VIEW IS WORKING!")
-                .font(.title)
-                .foregroundColor(.red)
-                .padding()
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                // Header with Incident Type and Status
+                VStack {
+                    Text(incident.incidentType.displayName)
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
 
-            Text("Incident Type: \(incident.incidentType.displayName)")
-                .font(.headline)
-                .padding()
+                    Text(incident.status.displayName)
+                        .font(.title3)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(statusColor.opacity(0.2))
+                        .foregroundColor(statusColor)
+                        .cornerRadius(8)
+                }
+                .padding(.top)
 
-            Text("Address: \(incident.address)")
-                .font(.body)
-                .padding()
+                // Location Section
+                Section(header: Text("Location").font(.headline)) {
+                    Text(incident.address)
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
 
-            Text("Status: \(incident.status.displayName)")
-                .font(.body)
-                .padding()
+                // Description Section
+                Section(header: Text("Description").font(.headline)) {
+                    Text(incident.description)
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
 
-            Spacer()
+                // Additional Details
+                Section(header: Text("Details").font(.headline)) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Date:")
+                                .fontWeight(.semibold)
+                            Text(incident.createdAt, style: .date)
+                        }
+                        HStack {
+                            Text("Time:")
+                                .fontWeight(.semibold)
+                            Text(incident.createdAt, style: .time)
+                        }
+                        // Add more details if available, e.g.:
+                        // Text("Responding Units: Police, Fire Dept")
+                        // Text("Notes: High priority incident")
+                    }
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                }
 
-            Button("Get Directions") {
-                openInMaps()
+                // Action Buttons
+                VStack(spacing: 12) {
+                    Button("Get Directions") {
+                        openInMaps()
+                    }
+                    .font(.title2)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .cornerRadius(10)
+
+                    Button("Call Emergency") {
+                        callEmergencyServices()
+                    }
+                    .font(.title2)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.red)
+                    .cornerRadius(10)
+                }
+                .padding(.horizontal)
             }
-            .font(.title2)
-            .foregroundColor(.white)
             .padding()
-            .background(Color.blue)
-            .cornerRadius(10)
-
-            Button("Call Emergency") {
-                callEmergencyServices()
-            }
-            .font(.title2)
-            .foregroundColor(.white)
-            .padding()
-            .background(Color.red)
-            .cornerRadius(10)
-
-            Spacer()
         }
-        .background(Color.yellow)
+        .navigationTitle("Incident Details")
     }
 
     private var statusColor: Color {

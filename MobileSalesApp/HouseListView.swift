@@ -9,6 +9,7 @@ struct HouseListView: View {
     @State private var showingRouteCreation = false
     @State private var isSelectionMode = false
     @State private var selectedSalespersonFilter: UUID? = nil
+    @State private var houseAgeFilterDays: Int = 7  // Default to 1 week
 
     var filteredHouses: [House] {
         var houses = dataManager.houses
@@ -21,9 +22,15 @@ struct HouseListView: View {
             houses = dataManager.getHousesForSalesperson(salespersonId)
         }
 
-
+        houses = houses.filter { isHouseWithinAgeFilter($0) }
 
         return houses.sorted { $0.createdAt > $1.createdAt }
+    }
+
+    private func isHouseWithinAgeFilter(_ house: House) -> Bool {
+        guard let soldDate = Date.fromISO8601(house.soldDate) else { return false }
+        let daysSinceSold = Calendar.current.dateComponents([.day], from: soldDate, to: Date()).day ?? 0
+        return daysSinceSold <= houseAgeFilterDays
     }
 
     var body: some View {
@@ -66,6 +73,17 @@ struct HouseListView: View {
                         }
                     }
                     .padding(.horizontal)
+                }
+
+                // Add filter section
+                Section(header: Text("Filters")) {
+                    Picker("Max Age (Days)", selection: $houseAgeFilterDays) {
+                        Text("7 Days").tag(7)
+                        Text("14 Days").tag(14)
+                        Text("30 Days").tag(30)
+                        Text("All").tag(Int.max)
+                    }
+                    .pickerStyle(SegmentedPickerStyle())
                 }
 
                 // Selection mode toolbar
@@ -332,5 +350,12 @@ struct HouseListView_Previews: PreviewProvider {
     static var previews: some View {
         HouseListView()
             .environmentObject(DataManager())
+    }
+}
+
+extension Date {
+    static func fromISO8601(_ string: String) -> Date? {
+        let formatter = ISO8601DateFormatter()
+        return formatter.date(from: string)
     }
 }

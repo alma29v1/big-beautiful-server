@@ -3,29 +3,38 @@ import CoreLocation
 
 struct House: Identifiable, Codable {
     let id: UUID
-    var address: String
-    var city: String
-    var state: String
-    var zipCode: String
-    var latitude: Double
-    var longitude: Double
-    var soldDate: String
-    var price: Double
-    var contactName: String
-    var contactEmail: String
-    var contactPhone: String
-    var fiberAvailable: Bool
-    var adtDetected: Bool
-    var status: HouseStatus
-    var notes: String
-    var createdAt: Date
+    let address: String
+    let city: String
+    let state: String
+    let zipCode: String
+    let latitude: Double
+    let longitude: Double
+    let soldDate: String
+    let price: Double
+    let contactName: String
+    let contactEmail: String
+    let contactPhone: String
+    let fiberAvailable: Bool
+    let adtDetected: Bool
+    let adtSignDetected: Bool // Corrected property for ADT sign detection
+    @CodableEnum var status: HouseStatus = .new
 
-    init(id: UUID = UUID(), address: String, city: String, state: String, zipCode: String,
-         latitude: Double, longitude: Double, soldDate: String, price: Double,
-         contactName: String, contactEmail: String, contactPhone: String,
-         fiberAvailable: Bool, adtDetected: Bool, status: HouseStatus = .new,
-         notes: String = "", createdAt: Date = Date()) {
-        self.id = id
+    // Update CodingKeys to include attSignDetected
+    enum CodingKeys: String, CodingKey {
+        case id, address, city, state, latitude, longitude, price, status
+        case zipCode = "zip_code"
+        case soldDate = "sold_date"
+        case contactName = "contact_name"
+        case contactEmail = "contact_email"
+        case contactPhone = "contact_phone"
+        case fiberAvailable = "fiber_available"
+        case adtDetected = "adt_detected"
+        case adtSignDetected = "adt_sign_detected"
+    }
+
+    // Update init if needed
+    init(address: String, city: String, state: String, zipCode: String, latitude: Double, longitude: Double, soldDate: String, price: Double, contactName: String, contactEmail: String, contactPhone: String, fiberAvailable: Bool, adtDetected: Bool, adtSignDetected: Bool) {
+        self.id = UUID()
         self.address = address
         self.city = city
         self.state = state
@@ -39,9 +48,7 @@ struct House: Identifiable, Codable {
         self.contactPhone = contactPhone
         self.fiberAvailable = fiberAvailable
         self.adtDetected = adtDetected
-        self.status = status
-        self.notes = notes
-        self.createdAt = createdAt
+        self.adtSignDetected = adtSignDetected
     }
 
     var coordinate: CLLocationCoordinate2D {
