@@ -7,7 +7,7 @@ struct LeadMarketplaceView: View {
     @State private var selectedLead: Lead?
     @State private var showingPurchaseConfirmation = false
     @State private var isLoadingLeads = false
-    
+
     var body: some View {
         VStack(spacing: 0) {
             // Header
@@ -17,14 +17,14 @@ struct LeadMarketplaceView: View {
                         Text("Lead Marketplace")
                             .font(.title)
                             .fontWeight(.bold)
-                        
+
                         Text("Monetize your leads and grow your business")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
-                    
+
                     Spacer()
-                    
+
                     Button("Refresh") {
                         loadAvailableLeads()
                     }
@@ -34,7 +34,7 @@ struct LeadMarketplaceView: View {
                     .foregroundColor(.white)
                     .cornerRadius(8)
                 }
-                
+
                 // Marketplace Stats
                 HStack(spacing: 20) {
                     MarketplaceStatCard(title: "Available Leads", value: "\(availableLeads.count)", icon: "house.circle")
@@ -44,7 +44,7 @@ struct LeadMarketplaceView: View {
             }
             .padding()
             .background(Color(.systemGray6))
-            
+
             if isLoadingLeads {
                 Spacer()
                 ProgressView("Loading leads...")
@@ -60,7 +60,7 @@ struct LeadMarketplaceView: View {
                             }
                         }
                     }
-                    
+
                     if !soldLeads.isEmpty {
                         Section(header: Text("Recently Sold")) {
                             ForEach(soldLeads) { lead in
@@ -87,14 +87,14 @@ struct LeadMarketplaceView: View {
             }
         }
     }
-    
+
     private var totalRevenue: Int {
         soldLeads.reduce(0) { $0 + Int($1.price) }
     }
-    
+
     private func loadAvailableLeads() {
         isLoadingLeads = true
-        
+
         // Simulate loading from Big Beautiful Program
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             // Mock leads for now - these would come from real appointments/responses
@@ -136,7 +136,7 @@ struct LeadMarketplaceView: View {
                     sourceIncident: "House fire incident"
                 )
             ]
-            
+
             soldLeads = [
                 Lead(
                     id: UUID(),
@@ -151,11 +151,11 @@ struct LeadMarketplaceView: View {
                     sourceIncident: "Storm damage"
                 )
             ]
-            
+
             isLoadingLeads = false
         }
     }
-    
+
     private func purchaseLead(_ lead: Lead) {
         // Move lead to sold leads
         if let index = availableLeads.firstIndex(where: { $0.id == lead.id }) {
@@ -163,12 +163,12 @@ struct LeadMarketplaceView: View {
             soldLead.description += " - PURCHASED"
             soldLeads.insert(soldLead, at: 0)
         }
-        
+
         // TODO: Process payment via Apple StoreKit
         // TODO: Notify Big Beautiful Program of purchase
-        
+
         selectedLead = nil
-        
+
         // Show success feedback
         // TODO: Add success animation/feedback
     }
@@ -180,17 +180,17 @@ struct MarketplaceStatCard: View {
     let title: String
     let value: String
     let icon: String
-    
+
     var body: some View {
         VStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.title2)
                 .foregroundColor(.blue)
-            
+
             Text(value)
                 .font(.title2)
                 .fontWeight(.bold)
-            
+
             Text(title)
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -207,44 +207,44 @@ struct MarketplaceStatCard: View {
 struct LeadRowView: View {
     let lead: Lead
     let onPurchase: () -> Void
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(lead.contactName)
                         .font(.headline)
-                    
+
                     Text(lead.address)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
-                
+
                 Spacer()
-                
+
                 VStack(alignment: .trailing, spacing: 4) {
                     Text("$\(lead.price, specifier: "%.0f")")
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.green)
-                    
+
                     PriorityBadge(priority: lead.priority)
                 }
             }
-            
+
             Text(lead.description)
                 .font(.body)
                 .foregroundColor(.primary)
-            
+
             HStack {
                 LeadTypeBadge(type: lead.leadType)
-                
+
                 Text(lead.sourceIncident)
                     .font(.caption)
                     .foregroundColor(.secondary)
-                
+
                 Spacer()
-                
+
                 Button("Purchase") {
                     onPurchase()
                 }
@@ -261,26 +261,26 @@ struct LeadRowView: View {
 
 struct SoldLeadRowView: View {
     let lead: Lead
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(lead.contactName)
                     .font(.headline)
                     .foregroundColor(.secondary)
-                
+
                 Spacer()
-                
+
                 Text("$\(lead.price, specifier: "%.0f")")
                     .font(.title3)
                     .fontWeight(.bold)
                     .foregroundColor(.green)
             }
-            
+
             Text(lead.address)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
-                
+
             Text("✅ SOLD")
                 .font(.caption)
                 .fontWeight(.bold)
@@ -292,7 +292,7 @@ struct SoldLeadRowView: View {
 
 struct PriorityBadge: View {
     let priority: LeadPriority
-    
+
     var body: some View {
         Text(priority.displayName)
             .font(.caption)
@@ -307,7 +307,7 @@ struct PriorityBadge: View {
 
 struct LeadTypeBadge: View {
     let type: LeadType
-    
+
     var body: some View {
         HStack(spacing: 4) {
             Image(systemName: type.icon)
@@ -342,7 +342,7 @@ enum LeadType: String, Codable, CaseIterable {
     case appointmentScheduled = "appointment_scheduled"
     case hotLead = "hot_lead"
     case callbackRequest = "callback_request"
-    
+
     var displayName: String {
         switch self {
         case .emailResponse: return "Email Response"
@@ -351,7 +351,7 @@ enum LeadType: String, Codable, CaseIterable {
         case .callbackRequest: return "Callback"
         }
     }
-    
+
     var icon: String {
         switch self {
         case .emailResponse: return "envelope.fill"
@@ -364,11 +364,11 @@ enum LeadType: String, Codable, CaseIterable {
 
 enum LeadPriority: String, Codable, CaseIterable {
     case low, medium, high, urgent
-    
+
     var displayName: String {
         rawValue.capitalized
     }
-    
+
     var color: Color {
         switch self {
         case .low: return .green

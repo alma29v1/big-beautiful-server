@@ -7,14 +7,14 @@ struct TerritoryDrawingView: View {
         center: CLLocationCoordinate2D(latitude: 34.2257, longitude: -77.9447),
         span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
     )
-    
+
     @State private var isDrawingMode = false
     @State private var currentTerritoryName = ""
     @State private var selectedSalesperson: SalesPerson?
     @State private var showingNameDialog = false
     @State private var drawnPoints: [CLLocationCoordinate2D] = []
     @State private var territories: [Territory] = []
-    
+
     var body: some View {
         VStack {
             // Controls Header
@@ -22,7 +22,7 @@ struct TerritoryDrawingView: View {
                 Text("Territory Management")
                     .font(.title2)
                     .fontWeight(.bold)
-                
+
                 // Drawing Controls
                 HStack {
                     Button(action: {
@@ -42,7 +42,7 @@ struct TerritoryDrawingView: View {
                         .foregroundColor(.white)
                         .cornerRadius(8)
                     }
-                    
+
                     if isDrawingMode {
                         Button("Cancel") {
                             cancelDrawing()
@@ -53,16 +53,16 @@ struct TerritoryDrawingView: View {
                         .foregroundColor(.white)
                         .cornerRadius(8)
                     }
-                    
+
                     Spacer()
                 }
-                
+
                 // Salesperson Selection
                 if !isDrawingMode {
                     HStack {
                         Text("Assign to:")
                             .font(.headline)
-                        
+
                         Picker("Salesperson", selection: $selectedSalesperson) {
                             Text("Select Salesperson").tag(nil as SalesPerson?)
                             ForEach(dataManager.salespeople) { person in
@@ -75,7 +75,7 @@ struct TerritoryDrawingView: View {
             }
             .padding()
             .background(Color(.systemGray6))
-            
+
             // Map with Territory Drawing
             ZStack {
                 Map(coordinateRegion: $region, annotationItems: dataManager.houses) { house in
@@ -90,18 +90,18 @@ struct TerritoryDrawingView: View {
                         addPointToTerritory(at: location)
                     }
                 }
-                
+
                 // Territory Overlay
                 TerritoryOverlayView(territories: territories, drawnPoints: drawnPoints)
             }
-            
+
             // Territory List
             if !territories.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Existing Territories")
                         .font(.headline)
                         .padding(.horizontal)
-                    
+
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 12) {
                             ForEach(territories) { territory in
@@ -127,42 +127,42 @@ struct TerritoryDrawingView: View {
             Text("Give this territory a name")
         }
     }
-    
+
     // MARK: - Territory Drawing Functions
-    
+
     private func startDrawing() {
         isDrawingMode = true
         drawnPoints = []
     }
-    
+
     private func addPointToTerritory(at location: CGPoint) {
         // Convert screen location to map coordinate
         // This is a simplified implementation - in production you'd need proper coordinate conversion
         let coordinate = region.center
         drawnPoints.append(coordinate)
     }
-    
+
     private func finishDrawing() {
         guard drawnPoints.count >= 3 else {
             // Need at least 3 points to make a territory
             return
         }
-        
+
         showingNameDialog = true
     }
-    
+
     private func cancelDrawing() {
         isDrawingMode = false
         drawnPoints = []
     }
-    
+
     private func createTerritory() {
         guard !currentTerritoryName.isEmpty,
               !drawnPoints.isEmpty,
               let salesperson = selectedSalesperson else {
             return
         }
-        
+
         let newTerritory = Territory(
             name: currentTerritoryName,
             salespersonId: salesperson.id,
@@ -170,22 +170,22 @@ struct TerritoryDrawingView: View {
             boundaries: drawnPoints,
             color: Territory.randomColor()
         )
-        
+
         territories.append(newTerritory)
-        
+
         // Reset drawing state
         isDrawingMode = false
         drawnPoints = []
         currentTerritoryName = ""
-        
+
         // Save to backend
         saveTerritory(newTerritory)
     }
-    
+
     private func deleteTerritory(_ territory: Territory) {
         territories.removeAll { $0.id == territory.id }
     }
-    
+
     private func saveTerritory(_ territory: Territory) {
         // TODO: Save to Big Beautiful Program via API
         print("Saving territory: \(territory.name)")
@@ -197,7 +197,7 @@ struct TerritoryDrawingView: View {
 struct TerritoryOverlayView: View {
     let territories: [Territory]
     let drawnPoints: [CLLocationCoordinate2D]
-    
+
     var body: some View {
         // This would render territory polygons on the map
         // Simplified implementation for now
@@ -208,30 +208,30 @@ struct TerritoryOverlayView: View {
 struct TerritoryCard: View {
     let territory: Territory
     let onDelete: () -> Void
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Circle()
                     .fill(territory.color)
                     .frame(width: 12, height: 12)
-                
+
                 Text(territory.name)
                     .font(.headline)
                     .lineLimit(1)
-                
+
                 Spacer()
-                
+
                 Button(action: onDelete) {
                     Image(systemName: "trash")
                         .foregroundColor(.red)
                 }
             }
-            
+
             Text(territory.salespersonName)
                 .font(.caption)
                 .foregroundColor(.secondary)
-            
+
             Text("\(territory.boundaries.count) points")
                 .font(.caption2)
                 .foregroundColor(.secondary)
@@ -254,7 +254,7 @@ struct Territory: Identifiable, Codable {
     let boundaries: [CLLocationCoordinate2D]
     let color: Color
     let createdAt = Date()
-    
+
     static func randomColor() -> Color {
         let colors: [Color] = [.blue, .red, .green, .orange, .purple, .pink, .yellow]
         return colors.randomElement() ?? .blue
@@ -268,14 +268,14 @@ extension CLLocationCoordinate2D: Codable {
         try container.encode(latitude, forKey: .latitude)
         try container.encode(longitude, forKey: .longitude)
     }
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let latitude = try container.decode(Double.self, forKey: .latitude)
         let longitude = try container.decode(Double.self, forKey: .longitude)
         self.init(latitude: latitude, longitude: longitude)
     }
-    
+
     private enum CodingKeys: String, CodingKey {
         case latitude, longitude
     }
@@ -287,7 +287,7 @@ extension Color: Codable {
         var container = encoder.singleValueContainer()
         try container.encode("blue") // Simplified for now
     }
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let colorName = try container.decode(String.self)
