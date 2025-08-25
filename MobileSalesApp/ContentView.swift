@@ -21,8 +21,9 @@ struct ContentView: View {
                 if userRole == .manager {
                     NavigationView { BigBeautifulIntegrationView().environmentObject(dataManager) }.tabItem { Image(systemName: "server.rack"); Text("Big Beautiful") }
                     NavigationView { RegionAssignmentView().environmentObject(dataManager) }.tabItem { Image(systemName: "person.2.circle"); Text("Regions") }
-                    NavigationView { TerritoryDrawingView().environmentObject(dataManager) }.tabItem { Image(systemName: "map.circle"); Text("Territories") }
-                    NavigationView { LeadMarketplaceView().environmentObject(dataManager) }.tabItem { Image(systemName: "cart"); Text("Marketplace") }
+                    // TODO: Add these after adding files to Xcode project
+                    // NavigationView { TerritoryDrawingView().environmentObject(dataManager) }.tabItem { Image(systemName: "map.circle"); Text("Territories") }
+                    // NavigationView { LeadMarketplaceView().environmentObject(dataManager) }.tabItem { Image(systemName: "cart"); Text("Marketplace") }
                 }
             }
             .accentColor(.blue)
